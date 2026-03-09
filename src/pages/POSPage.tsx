@@ -182,10 +182,16 @@ export default function POSPage() {
           {lastTransaction && cart.length === 0 && (
             <div className="mt-2">
               <Receipt ref={receiptRef} transaction={lastTransaction} />
-              <Button onClick={printReceipt} variant="outline" className="w-full mt-3 touch-target gap-2">
-                <Printer className="w-4 h-4" />
-                طباعة الفاتورة
-              </Button>
+              <div className="flex gap-2 mt-3">
+                <Button onClick={printReceipt} variant="outline" className="flex-1 touch-target gap-2">
+                  <Printer className="w-4 h-4" />
+                  طباعة
+                </Button>
+                <Button onClick={saveReceiptAsImage} variant="outline" className="flex-1 touch-target gap-2">
+                  <Download className="w-4 h-4" />
+                  حفظ كصورة
+                </Button>
+              </div>
             </div>
           )}
         </div>
