@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { getProducts, addProduct, updateProduct, deleteProduct, Product } from "@/lib/store";
+import { getStoreSettings, CURRENCIES } from "@/lib/store-settings";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Plus, Search, Edit2, Trash2, AlertTriangle } from "lucide-react";
