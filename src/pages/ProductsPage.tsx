@@ -9,6 +9,8 @@ import BarcodeDisplay from "@/components/pos/BarcodeDisplay";
 import { toast } from "sonner";
 
 export default function ProductsPage() {
+  const settings = getStoreSettings();
+  const cs = CURRENCIES.find(c => c.code === settings.currency)?.symbol ?? "ر.س";
   const [products, setProducts] = useState<Product[]>([]);
   const [search, setSearch] = useState("");
   const [formOpen, setFormOpen] = useState(false);
