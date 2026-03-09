@@ -153,4 +153,7 @@ export function getLowStockProducts(): Product[] {
   return getProducts().filter(p => p.stock <= p.lowStockThreshold);
 }
 
-export const VAT_PERCENTAGE = VAT_RATE * 100;
+export function getVatPercentage(): number {
+  return getVatRate() * 100;
+}
+export { getVatRate };
