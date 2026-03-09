@@ -29,7 +29,17 @@ export interface Transaction {
 
 const PRODUCTS_KEY = 'pos_products';
 const TRANSACTIONS_KEY = 'pos_transactions';
-const VAT_RATE = 0.15; // 15% VAT
+// VAT_RATE is now dynamic from store settings
+function getVatRate(): number {
+  try {
+    const data = localStorage.getItem('pos_store_settings');
+    if (data) {
+      const settings = JSON.parse(data);
+      return (settings.vatRate ?? 15) / 100;
+    }
+  } catch {}
+  return 0.15;
+}
 
 /**
  * Generates a unique EAN-13 barcode.
@@ -98,7 +108,7 @@ export function getTransactions(): Transaction[] {
 
 export function saveTransaction(items: CartItem[]): Transaction {
   const subtotal = items.reduce((sum, item) => sum + item.product.salePrice * item.quantity, 0);
-  const tax = subtotal * VAT_RATE;
+  const tax = subtotal * getVatRate();
   const total = subtotal + tax;
 
   const transaction: Transaction = {
@@ -143,4 +153,7 @@ export function getLowStockProducts(): Product[] {
   return getProducts().filter(p => p.stock <= p.lowStockThreshold);
 }
 
-export const VAT_PERCENTAGE = VAT_RATE * 100;
+export function getVatPercentage(): number {
+  return getVatRate() * 100;
+}
+export { getVatRate };

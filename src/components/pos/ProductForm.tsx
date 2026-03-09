@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Product } from "@/lib/store";
+import { getStoreSettings, CURRENCIES } from "@/lib/store-settings";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -15,6 +16,7 @@ interface Props {
 const CATEGORIES = ["مشروبات", "مواد غذائية", "منظفات", "إلكترونيات", "ملابس", "أخرى"];
 
 export default function ProductForm({ open, onClose, onSave, initial }: Props) {
+  const cs = CURRENCIES.find(c => c.code === getStoreSettings().currency)?.symbol ?? "ر.س";
   const [name, setName] = useState(initial?.name || "");
   const [category, setCategory] = useState(initial?.category || CATEGORIES[0]);
   const [salePrice, setSalePrice] = useState(initial?.salePrice?.toString() || "");
@@ -55,11 +57,11 @@ export default function ProductForm({ open, onClose, onSave, initial }: Props) {
           </div>
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <Label>سعر البيع (ر.س)</Label>
+              <Label>سعر البيع ({cs})</Label>
               <Input type="number" step="0.01" min="0" value={salePrice} onChange={e => setSalePrice(e.target.value)} className="touch-target" required />
             </div>
             <div>
-              <Label>سعر التكلفة (ر.س)</Label>
+              <Label>سعر التكلفة ({cs})</Label>
               <Input type="number" step="0.01" min="0" value={costPrice} onChange={e => setCostPrice(e.target.value)} className="touch-target" required />
             </div>
           </div>

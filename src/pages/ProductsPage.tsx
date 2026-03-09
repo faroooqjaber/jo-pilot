@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { getProducts, addProduct, updateProduct, deleteProduct, Product } from "@/lib/store";
+import { getStoreSettings, CURRENCIES } from "@/lib/store-settings";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Plus, Search, Edit2, Trash2, AlertTriangle } from "lucide-react";
@@ -8,6 +9,8 @@ import BarcodeDisplay from "@/components/pos/BarcodeDisplay";
 import { toast } from "sonner";
 
 export default function ProductsPage() {
+  const settings = getStoreSettings();
+  const cs = CURRENCIES.find(c => c.code === settings.currency)?.symbol ?? "ر.س";
   const [products, setProducts] = useState<Product[]>([]);
   const [search, setSearch] = useState("");
   const [formOpen, setFormOpen] = useState(false);
@@ -78,8 +81,8 @@ export default function ProductsPage() {
                 </div>
                 <p className="text-sm text-muted-foreground">{product.category}</p>
                 <div className="flex gap-4 mt-2 text-sm">
-                  <span className="text-foreground">سعر البيع: <strong className="text-primary">{product.salePrice.toFixed(2)} ر.س</strong></span>
-                  <span className="text-muted-foreground">التكلفة: {product.costPrice.toFixed(2)} ر.س</span>
+                  <span className="text-foreground">سعر البيع: <strong className="text-primary">{product.salePrice.toFixed(2)} {cs}</strong></span>
+                  <span className="text-muted-foreground">التكلفة: {product.costPrice.toFixed(2)} {cs}</span>
                   <span className={`${outOfStock ? "text-danger" : lowStock ? "text-warning" : "text-success"}`}>
                     المخزون: {product.stock}
                   </span>

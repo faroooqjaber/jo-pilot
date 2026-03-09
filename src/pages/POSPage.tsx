@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from "react";
-import { getProducts, CartItem, saveTransaction, Transaction, Product } from "@/lib/store";
+import { getProducts, CartItem, saveTransaction, Transaction, Product, getVatRate } from "@/lib/store";
+import { getStoreSettings, CURRENCIES } from "@/lib/store-settings";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Search, Plus, Minus, Trash2, Printer, CheckCircle, Download } from "lucide-react";
@@ -13,6 +14,11 @@ export default function POSPage() {
   const [search, setSearch] = useState("");
   const [lastTransaction, setLastTransaction] = useState<Transaction | null>(null);
   const receiptRef = useRef<HTMLDivElement>(null);
+
+  const settings = getStoreSettings();
+  const currencySymbol = CURRENCIES.find(c => c.code === settings.currency)?.symbol ?? "ر.س";
+  const vatRate = getVatRate();
+  const vatPct = settings.vatRate;
 
   useEffect(() => {
     setProducts(getProducts());
@@ -58,7 +64,7 @@ export default function POSPage() {
   };
 
   const subtotal = cart.reduce((s, i) => s + i.product.salePrice * i.quantity, 0);
-  const tax = subtotal * 0.15;
+  const tax = subtotal * vatRate;
   const total = subtotal + tax;
 
   const finalizeSale = () => {
@@ -89,6 +95,8 @@ export default function POSPage() {
       toast.error("فشل حفظ الفاتورة كصورة");
     }
   };
+
+  const fmt = (n: number) => `${n.toFixed(2)} ${currencySymbol}`;
 
   return (
     <div className="flex h-full">
@@ -124,7 +132,7 @@ export default function POSPage() {
               >
                 <h3 className="font-bold text-sm text-card-foreground truncate">{product.name}</h3>
                 <p className="text-xs text-muted-foreground mt-1">{product.category}</p>
-                <p className="text-lg font-bold text-primary mt-2">{product.salePrice.toFixed(2)} <span className="text-xs">ر.س</span></p>
+                <p className="text-lg font-bold text-primary mt-2">{fmt(product.salePrice)}</p>
                 <div className={`text-xs mt-1 font-semibold ${outOfStock ? "text-danger" : lowStock ? "text-warning" : "text-success"}`}>
                   {outOfStock ? "نفذ من المخزون" : lowStock ? `⚠ متبقي ${product.stock}` : `المخزون: ${product.stock}`}
                 </div>
@@ -155,11 +163,11 @@ export default function POSPage() {
                 </button>
                 <div className="text-right flex-1 mr-2">
                   <p className="font-semibold text-sm text-foreground">{item.product.name}</p>
-                  <p className="text-xs text-muted-foreground">{item.product.salePrice.toFixed(2)} ر.س</p>
+                  <p className="text-xs text-muted-foreground">{fmt(item.product.salePrice)}</p>
                 </div>
               </div>
               <div className="flex items-center justify-between mt-2">
-                <span className="font-bold text-sm text-primary">{(item.product.salePrice * item.quantity).toFixed(2)} ر.س</span>
+                <span className="font-bold text-sm text-primary">{fmt(item.product.salePrice * item.quantity)}</span>
                 <div className="flex items-center gap-2">
                   <button onClick={() => updateQuantity(item.product.id, -1)} className="w-8 h-8 rounded-md bg-secondary flex items-center justify-center hover:bg-secondary/80 text-secondary-foreground">
                     <Minus className="w-4 h-4" />
@@ -199,15 +207,15 @@ export default function POSPage() {
         {cart.length > 0 && (
           <div className="p-4 border-t border-border space-y-2">
             <div className="flex justify-between text-sm text-muted-foreground">
-              <span>{subtotal.toFixed(2)} ر.س</span>
+              <span>{fmt(subtotal)}</span>
               <span>المجموع الفرعي</span>
             </div>
             <div className="flex justify-between text-sm text-muted-foreground">
-              <span>{tax.toFixed(2)} ر.س</span>
-              <span>ضريبة القيمة المضافة (15%)</span>
+              <span>{fmt(tax)}</span>
+              <span>ضريبة القيمة المضافة ({vatPct}%)</span>
             </div>
             <div className="flex justify-between text-lg font-bold text-foreground border-t border-border pt-2">
-              <span>{total.toFixed(2)} ر.س</span>
+              <span>{fmt(total)}</span>
               <span>الإجمالي</span>
             </div>
             <Button onClick={finalizeSale} className="w-full touch-target text-base gap-2 mt-2" size="lg">
