@@ -1,0 +1,71 @@
+import { forwardRef } from "react";
+import { Transaction } from "@/lib/store";
+import { format } from "date-fns";
+import { ar } from "date-fns/locale";
+
+interface Props {
+  transaction: Transaction;
+}
+
+const Receipt = forwardRef<HTMLDivElement, Props>(({ transaction }, ref) => {
+  return (
+    <div ref={ref} className="receipt-print bg-card p-6 w-[80mm] mx-auto font-mono-code text-xs text-card-foreground" dir="rtl">
+      <div className="text-center mb-4">
+        <h2 className="text-base font-bold">كاشير برو</h2>
+        <p className="text-muted-foreground">فاتورة ضريبية مبسطة</p>
+        <p className="text-muted-foreground mt-1">
+          {format(new Date(transaction.date), "yyyy/MM/dd - HH:mm", { locale: ar })}
+        </p>
+        <p className="text-muted-foreground">رقم: {transaction.id.slice(0, 8)}</p>
+      </div>
+
+      <div className="border-t border-dashed border-border my-2" />
+
+      <table className="w-full text-xs">
+        <thead>
+          <tr className="border-b border-border">
+            <th className="text-right py-1">الصنف</th>
+            <th className="text-center py-1">الكمية</th>
+            <th className="text-left py-1">المبلغ</th>
+          </tr>
+        </thead>
+        <tbody>
+          {transaction.items.map((item, i) => (
+            <tr key={i} className="border-b border-border/50">
+              <td className="py-1 text-right">{item.product.name}</td>
+              <td className="py-1 text-center">{item.quantity}</td>
+              <td className="py-1 text-left">{(item.product.salePrice * item.quantity).toFixed(2)}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+
+      <div className="border-t border-dashed border-border my-2" />
+
+      <div className="space-y-1">
+        <div className="flex justify-between">
+          <span>المجموع الفرعي:</span>
+          <span>{transaction.subtotal.toFixed(2)} ر.س</span>
+        </div>
+        <div className="flex justify-between">
+          <span>ضريبة القيمة المضافة (15%):</span>
+          <span>{transaction.tax.toFixed(2)} ر.س</span>
+        </div>
+        <div className="flex justify-between font-bold text-sm border-t border-border pt-1">
+          <span>الإجمالي:</span>
+          <span>{transaction.total.toFixed(2)} ر.س</span>
+        </div>
+      </div>
+
+      <div className="border-t border-dashed border-border my-3" />
+
+      <div className="text-center text-muted-foreground">
+        <p>شكراً لزيارتكم!</p>
+        <p>نسعد بخدمتكم دائماً</p>
+      </div>
+    </div>
+  );
+});
+
+Receipt.displayName = "Receipt";
+export default Receipt;
