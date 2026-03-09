@@ -81,8 +81,8 @@ export default function ProductsPage() {
                 </div>
                 <p className="text-sm text-muted-foreground">{product.category}</p>
                 <div className="flex gap-4 mt-2 text-sm">
-                  <span className="text-foreground">سعر البيع: <strong className="text-primary">{product.salePrice.toFixed(2)} ر.س</strong></span>
-                  <span className="text-muted-foreground">التكلفة: {product.costPrice.toFixed(2)} ر.س</span>
+                  <span className="text-foreground">سعر البيع: <strong className="text-primary">{product.salePrice.toFixed(2)} {cs}</strong></span>
+                  <span className="text-muted-foreground">التكلفة: {product.costPrice.toFixed(2)} {cs}</span>
                   <span className={`${outOfStock ? "text-danger" : lowStock ? "text-warning" : "text-success"}`}>
                     المخزون: {product.stock}
                   </span>

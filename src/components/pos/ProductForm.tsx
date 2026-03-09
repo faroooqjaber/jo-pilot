@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Product } from "@/lib/store";
+import { getStoreSettings, CURRENCIES } from "@/lib/store-settings";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
