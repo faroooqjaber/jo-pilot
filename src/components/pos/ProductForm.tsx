@@ -16,6 +16,7 @@ interface Props {
 const CATEGORIES = ["مشروبات", "مواد غذائية", "منظفات", "إلكترونيات", "ملابس", "أخرى"];
 
 export default function ProductForm({ open, onClose, onSave, initial }: Props) {
+  const cs = CURRENCIES.find(c => c.code === getStoreSettings().currency)?.symbol ?? "ر.س";
   const [name, setName] = useState(initial?.name || "");
   const [category, setCategory] = useState(initial?.category || CATEGORIES[0]);
   const [salePrice, setSalePrice] = useState(initial?.salePrice?.toString() || "");
