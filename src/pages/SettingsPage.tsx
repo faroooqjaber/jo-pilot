@@ -1,8 +1,9 @@
 import { useState, useRef } from "react";
-import { getStoreSettings, saveStoreSettings } from "@/lib/store-settings";
+import { getStoreSettings, saveStoreSettings, CURRENCIES } from "@/lib/store-settings";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { ShoppingCart, Upload, Trash2, Save } from "lucide-react";
 import { toast } from "sonner";
 
@@ -27,6 +28,10 @@ export default function SettingsPage() {
   const handleSave = () => {
     if (!settings.storeName.trim()) {
       toast.error("اسم المتجر مطلوب");
+      return;
+    }
+    if (settings.vatRate < 0 || settings.vatRate > 100) {
+      toast.error("نسبة الضريبة يجب أن تكون بين 0 و 100");
       return;
     }
     saveStoreSettings(settings);
@@ -81,6 +86,39 @@ export default function SettingsPage() {
           </div>
           <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={handleLogoUpload} />
           <p className="text-xs text-muted-foreground">يُستخدم في الفاتورة والقائمة الجانبية. الحد الأقصى 2 ميجابايت.</p>
+        </div>
+
+        {/* Currency */}
+        <div className="space-y-2">
+          <Label className="text-sm font-semibold">العملة</Label>
+          <Select value={settings.currency} onValueChange={v => setSettings(prev => ({ ...prev, currency: v }))}>
+            <SelectTrigger className="text-base">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent className="max-h-64">
+              {CURRENCIES.map(c => (
+                <SelectItem key={c.code} value={c.code}>
+                  {c.symbol} - {c.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+
+        {/* VAT Rate */}
+        <div className="space-y-2">
+          <Label htmlFor="vatRate" className="text-sm font-semibold">نسبة ضريبة القيمة المضافة (%)</Label>
+          <Input
+            id="vatRate"
+            type="number"
+            min="0"
+            max="100"
+            step="0.5"
+            value={settings.vatRate}
+            onChange={e => setSettings(prev => ({ ...prev, vatRate: parseFloat(e.target.value) || 0 }))}
+            className="text-base"
+          />
+          <p className="text-xs text-muted-foreground">أدخل 0 لتعطيل الضريبة</p>
         </div>
 
         <Button onClick={handleSave} className="w-full touch-target gap-2" size="lg">

@@ -1,6 +1,6 @@
 import { forwardRef } from "react";
 import { Transaction } from "@/lib/store";
-import { getStoreSettings } from "@/lib/store-settings";
+import { getStoreSettings, CURRENCIES } from "@/lib/store-settings";
 import { format } from "date-fns";
 import { ar } from "date-fns/locale";
 import { ShoppingCart } from "lucide-react";
@@ -11,6 +11,8 @@ interface Props {
 
 const Receipt = forwardRef<HTMLDivElement, Props>(({ transaction }, ref) => {
   const settings = getStoreSettings();
+  const currencySymbol = CURRENCIES.find(c => c.code === settings.currency)?.symbol ?? "ر.س";
+  const fmt = (n: number) => `${n.toFixed(2)} ${currencySymbol}`;
 
   return (
     <div ref={ref} className="receipt-print bg-card p-6 w-[80mm] mx-auto font-mono-code text-xs text-card-foreground" dir="rtl">
@@ -56,15 +58,15 @@ const Receipt = forwardRef<HTMLDivElement, Props>(({ transaction }, ref) => {
       <div className="space-y-1">
         <div className="flex justify-between">
           <span>المجموع الفرعي:</span>
-          <span>{transaction.subtotal.toFixed(2)} ر.س</span>
+          <span>{fmt(transaction.subtotal)}</span>
         </div>
         <div className="flex justify-between">
-          <span>ضريبة القيمة المضافة (15%):</span>
-          <span>{transaction.tax.toFixed(2)} ر.س</span>
+          <span>ضريبة القيمة المضافة ({settings.vatRate}%):</span>
+          <span>{fmt(transaction.tax)}</span>
         </div>
         <div className="flex justify-between font-bold text-sm border-t border-border pt-1">
           <span>الإجمالي:</span>
-          <span>{transaction.total.toFixed(2)} ر.س</span>
+          <span>{fmt(transaction.total)}</span>
         </div>
       </div>
 
