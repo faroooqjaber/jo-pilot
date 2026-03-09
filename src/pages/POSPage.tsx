@@ -76,6 +76,20 @@ export default function POSPage() {
     }
   };
 
+  const saveReceiptAsImage = async () => {
+    if (!receiptRef.current) return;
+    try {
+      const dataUrl = await toPng(receiptRef.current, { backgroundColor: '#ffffff', pixelRatio: 2 });
+      const link = document.createElement('a');
+      link.download = `receipt-${lastTransaction?.id.slice(0, 8)}.png`;
+      link.href = dataUrl;
+      link.click();
+      toast.success("تم حفظ الفاتورة كصورة!");
+    } catch {
+      toast.error("فشل حفظ الفاتورة كصورة");
+    }
+  };
+
   return (
     <div className="flex h-full">
       {/* Products Grid */}
