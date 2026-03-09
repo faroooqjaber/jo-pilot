@@ -2,9 +2,10 @@ import { useState, useEffect, useRef } from "react";
 import { getProducts, CartItem, saveTransaction, Transaction, Product } from "@/lib/store";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Search, Plus, Minus, Trash2, Printer, CheckCircle } from "lucide-react";
+import { Search, Plus, Minus, Trash2, Printer, CheckCircle, Download } from "lucide-react";
 import Receipt from "@/components/pos/Receipt";
 import { toast } from "sonner";
+import { toPng } from "html-to-image";
 
 export default function POSPage() {
   const [products, setProducts] = useState<Product[]>([]);
