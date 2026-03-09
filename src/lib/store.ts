@@ -108,7 +108,7 @@ export function getTransactions(): Transaction[] {
 
 export function saveTransaction(items: CartItem[]): Transaction {
   const subtotal = items.reduce((sum, item) => sum + item.product.salePrice * item.quantity, 0);
-  const tax = subtotal * VAT_RATE;
+  const tax = subtotal * getVatRate();
   const total = subtotal + tax;
 
   const transaction: Transaction = {
