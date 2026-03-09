@@ -57,11 +57,11 @@ export default function ProductForm({ open, onClose, onSave, initial }: Props) {
           </div>
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <Label>سعر البيع (ر.س)</Label>
+              <Label>سعر البيع ({cs})</Label>
               <Input type="number" step="0.01" min="0" value={salePrice} onChange={e => setSalePrice(e.target.value)} className="touch-target" required />
             </div>
             <div>
-              <Label>سعر التكلفة (ر.س)</Label>
+              <Label>سعر التكلفة ({cs})</Label>
               <Input type="number" step="0.01" min="0" value={costPrice} onChange={e => setCostPrice(e.target.value)} className="touch-target" required />
             </div>
           </div>
