@@ -2,9 +2,10 @@ import { useState, useEffect, useRef } from "react";
 import { getProducts, CartItem, saveTransaction, Transaction, Product } from "@/lib/store";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Search, Plus, Minus, Trash2, Printer, CheckCircle } from "lucide-react";
+import { Search, Plus, Minus, Trash2, Printer, CheckCircle, Download } from "lucide-react";
 import Receipt from "@/components/pos/Receipt";
 import { toast } from "sonner";
+import { toPng } from "html-to-image";
 
 export default function POSPage() {
   const [products, setProducts] = useState<Product[]>([]);
@@ -72,6 +73,20 @@ export default function POSPage() {
   const printReceipt = () => {
     if (receiptRef.current) {
       window.print();
+    }
+  };
+
+  const saveReceiptAsImage = async () => {
+    if (!receiptRef.current) return;
+    try {
+      const dataUrl = await toPng(receiptRef.current, { backgroundColor: '#ffffff', pixelRatio: 2 });
+      const link = document.createElement('a');
+      link.download = `receipt-${lastTransaction?.id.slice(0, 8)}.png`;
+      link.href = dataUrl;
+      link.click();
+      toast.success("تم حفظ الفاتورة كصورة!");
+    } catch {
+      toast.error("فشل حفظ الفاتورة كصورة");
     }
   };
 
@@ -167,10 +182,16 @@ export default function POSPage() {
           {lastTransaction && cart.length === 0 && (
             <div className="mt-2">
               <Receipt ref={receiptRef} transaction={lastTransaction} />
-              <Button onClick={printReceipt} variant="outline" className="w-full mt-3 touch-target gap-2">
-                <Printer className="w-4 h-4" />
-                طباعة الفاتورة
-              </Button>
+              <div className="flex gap-2 mt-3">
+                <Button onClick={printReceipt} variant="outline" className="flex-1 touch-target gap-2">
+                  <Printer className="w-4 h-4" />
+                  طباعة
+                </Button>
+                <Button onClick={saveReceiptAsImage} variant="outline" className="flex-1 touch-target gap-2">
+                  <Download className="w-4 h-4" />
+                  حفظ كصورة
+                </Button>
+              </div>
             </div>
           )}
         </div>

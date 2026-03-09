@@ -7,6 +7,7 @@ import POSLayout from "@/components/pos/POSLayout";
 import POSPage from "@/pages/POSPage";
 import ProductsPage from "@/pages/ProductsPage";
 import DashboardPage from "@/pages/DashboardPage";
+import SettingsPage from "@/pages/SettingsPage";
 import NotFound from "./pages/NotFound.tsx";
 
 const queryClient = new QueryClient();
@@ -22,6 +23,7 @@ const App = () => (
             <Route path="/" element={<POSPage />} />
             <Route path="/products" element={<ProductsPage />} />
             <Route path="/dashboard" element={<DashboardPage />} />
+            <Route path="/settings" element={<SettingsPage />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </POSLayout>

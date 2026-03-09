@@ -1,17 +1,28 @@
 import { forwardRef } from "react";
 import { Transaction } from "@/lib/store";
+import { getStoreSettings } from "@/lib/store-settings";
 import { format } from "date-fns";
 import { ar } from "date-fns/locale";
+import { ShoppingCart } from "lucide-react";
 
 interface Props {
   transaction: Transaction;
 }
 
 const Receipt = forwardRef<HTMLDivElement, Props>(({ transaction }, ref) => {
+  const settings = getStoreSettings();
+
   return (
     <div ref={ref} className="receipt-print bg-card p-6 w-[80mm] mx-auto font-mono-code text-xs text-card-foreground" dir="rtl">
       <div className="text-center mb-4">
-        <h2 className="text-base font-bold">كاشير برو</h2>
+        <div className="w-12 h-12 mx-auto mb-2 rounded-lg overflow-hidden flex items-center justify-center bg-muted">
+          {settings.storeLogo ? (
+            <img src={settings.storeLogo} alt={settings.storeName} className="w-full h-full object-cover" />
+          ) : (
+            <ShoppingCart className="w-6 h-6 text-muted-foreground" />
+          )}
+        </div>
+        <h2 className="text-base font-bold">{settings.storeName}</h2>
         <p className="text-muted-foreground">فاتورة ضريبية مبسطة</p>
         <p className="text-muted-foreground mt-1">
           {format(new Date(transaction.date), "yyyy/MM/dd - HH:mm", { locale: ar })}
