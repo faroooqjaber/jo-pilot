@@ -1,13 +1,15 @@
 import { useState, useRef } from "react";
 import { getStoreSettings, saveStoreSettings, CURRENCIES } from "@/lib/store-settings";
+import { useI18n, Language } from "@/lib/i18n";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { ShoppingCart, Upload, Trash2, Save } from "lucide-react";
+import { ShoppingCart, Upload, Trash2, Save, Globe } from "lucide-react";
 import { toast } from "sonner";
 
 export default function SettingsPage() {
+  const { t, lang, setLang, dir } = useI18n();
   const [settings, setSettings] = useState(getStoreSettings);
   const fileRef = useRef<HTMLInputElement>(null);
 
@@ -15,7 +17,7 @@ export default function SettingsPage() {
     const file = e.target.files?.[0];
     if (!file) return;
     if (file.size > 2 * 1024 * 1024) {
-      toast.error("حجم الصورة يجب أن لا يتجاوز 2 ميجابايت");
+      toast.error(t("imageTooLarge"));
       return;
     }
     const reader = new FileReader();
@@ -27,41 +29,67 @@ export default function SettingsPage() {
 
   const handleSave = () => {
     if (!settings.storeName.trim()) {
-      toast.error("اسم المتجر مطلوب");
+      toast.error(t("storeNameRequired"));
       return;
     }
     if (settings.vatRate < 0 || settings.vatRate > 100) {
-      toast.error("نسبة الضريبة يجب أن تكون بين 0 و 100");
+      toast.error(t("vatRangeError"));
       return;
     }
     saveStoreSettings(settings);
-    toast.success("تم حفظ الإعدادات بنجاح!");
+    toast.success(t("settingsSaved"));
   };
 
   return (
-    <div className="p-6 max-w-xl mx-auto" dir="rtl">
-      <h1 className="text-2xl font-bold text-foreground mb-6">إعدادات المتجر</h1>
+    <div className="p-6 max-w-xl mx-auto" dir={dir}>
+      <h1 className="text-2xl font-bold text-foreground mb-6">{t("storeSettings")}</h1>
 
       <div className="bg-card border border-border rounded-xl p-6 space-y-6">
+        {/* Language */}
+        <div className="space-y-2">
+          <Label className="text-sm font-semibold flex items-center gap-2">
+            <Globe className="w-4 h-4" />
+            {t("language")}
+          </Label>
+          <div className="flex gap-2">
+            <Button
+              variant={lang === "ar" ? "default" : "outline"}
+              size="sm"
+              onClick={() => setLang("ar")}
+              className="flex-1"
+            >
+              {t("arabic")}
+            </Button>
+            <Button
+              variant={lang === "en" ? "default" : "outline"}
+              size="sm"
+              onClick={() => setLang("en")}
+              className="flex-1"
+            >
+              {t("english")}
+            </Button>
+          </div>
+        </div>
+
         {/* Store Name */}
         <div className="space-y-2">
-          <Label htmlFor="storeName" className="text-sm font-semibold">اسم المتجر</Label>
+          <Label htmlFor="storeName" className="text-sm font-semibold">{t("storeNameLabel")}</Label>
           <Input
             id="storeName"
             value={settings.storeName}
             onChange={e => setSettings(prev => ({ ...prev, storeName: e.target.value }))}
-            placeholder="أدخل اسم المتجر"
+            placeholder={t("storeNamePlaceholder")}
             className="text-base"
           />
         </div>
 
         {/* Store Logo */}
         <div className="space-y-2">
-          <Label className="text-sm font-semibold">شعار المتجر</Label>
+          <Label className="text-sm font-semibold">{t("storeLogo")}</Label>
           <div className="flex items-center gap-4">
             <div className="w-20 h-20 rounded-xl border border-border bg-muted flex items-center justify-center overflow-hidden shrink-0">
               {settings.storeLogo ? (
-                <img src={settings.storeLogo} alt="شعار المتجر" className="w-full h-full object-cover" />
+                <img src={settings.storeLogo} alt={t("storeLogo")} className="w-full h-full object-cover" />
               ) : (
                 <ShoppingCart className="w-8 h-8 text-muted-foreground" />
               )}
@@ -69,7 +97,7 @@ export default function SettingsPage() {
             <div className="flex flex-col gap-2">
               <Button variant="outline" size="sm" onClick={() => fileRef.current?.click()} className="gap-2">
                 <Upload className="w-4 h-4" />
-                رفع صورة
+                {t("uploadImage")}
               </Button>
               {settings.storeLogo && (
                 <Button
@@ -79,18 +107,18 @@ export default function SettingsPage() {
                   className="gap-2 text-destructive hover:text-destructive"
                 >
                   <Trash2 className="w-4 h-4" />
-                  إزالة الشعار
+                  {t("removeLogo")}
                 </Button>
               )}
             </div>
           </div>
           <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={handleLogoUpload} />
-          <p className="text-xs text-muted-foreground">يُستخدم في الفاتورة والقائمة الجانبية. الحد الأقصى 2 ميجابايت.</p>
+          <p className="text-xs text-muted-foreground">{t("logoHint")}</p>
         </div>
 
         {/* Currency */}
         <div className="space-y-2">
-          <Label className="text-sm font-semibold">العملة</Label>
+          <Label className="text-sm font-semibold">{t("currency")}</Label>
           <Select value={settings.currency} onValueChange={v => setSettings(prev => ({ ...prev, currency: v }))}>
             <SelectTrigger className="text-base">
               <SelectValue />
@@ -107,7 +135,7 @@ export default function SettingsPage() {
 
         {/* VAT Rate */}
         <div className="space-y-2">
-          <Label htmlFor="vatRate" className="text-sm font-semibold">نسبة ضريبة القيمة المضافة (%)</Label>
+          <Label htmlFor="vatRate" className="text-sm font-semibold">{t("vatRate")}</Label>
           <Input
             id="vatRate"
             type="number"
@@ -118,12 +146,12 @@ export default function SettingsPage() {
             onChange={e => setSettings(prev => ({ ...prev, vatRate: parseFloat(e.target.value) || 0 }))}
             className="text-base"
           />
-          <p className="text-xs text-muted-foreground">أدخل 0 لتعطيل الضريبة</p>
+          <p className="text-xs text-muted-foreground">{t("vatHint")}</p>
         </div>
 
         <Button onClick={handleSave} className="w-full touch-target gap-2" size="lg">
           <Save className="w-5 h-5" />
-          حفظ الإعدادات
+          {t("saveSettings")}
         </Button>
       </div>
     </div>

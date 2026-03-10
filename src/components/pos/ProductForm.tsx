@@ -1,6 +1,7 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Product } from "@/lib/store";
 import { getStoreSettings, CURRENCIES } from "@/lib/store-settings";
+import { useI18n } from "@/lib/i18n";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -13,16 +14,33 @@ interface Props {
   initial?: Product | null;
 }
 
-const CATEGORIES = ["مشروبات", "مواد غذائية", "منظفات", "إلكترونيات", "ملابس", "أخرى"];
-
 export default function ProductForm({ open, onClose, onSave, initial }: Props) {
+  const { t, dir } = useI18n();
   const cs = CURRENCIES.find(c => c.code === getStoreSettings().currency)?.symbol ?? "ر.س";
-  const [name, setName] = useState(initial?.name || "");
-  const [category, setCategory] = useState(initial?.category || CATEGORIES[0]);
-  const [salePrice, setSalePrice] = useState(initial?.salePrice?.toString() || "");
-  const [costPrice, setCostPrice] = useState(initial?.costPrice?.toString() || "");
-  const [stock, setStock] = useState(initial?.stock?.toString() || "");
-  const [threshold, setThreshold] = useState(initial?.lowStockThreshold?.toString() || "5");
+
+  const [name, setName] = useState("");
+  const [category, setCategory] = useState("");
+  const [salePrice, setSalePrice] = useState("");
+  const [costPrice, setCostPrice] = useState("");
+  const [stock, setStock] = useState("");
+  const [threshold, setThreshold] = useState("5");
+
+  const categories = [
+    t("catBeverages"), t("catFood"), t("catCleaning"),
+    t("catElectronics"), t("catClothing"), t("catOther"),
+  ];
+
+  // Reset form when initial changes or dialog opens
+  useEffect(() => {
+    if (open) {
+      setName(initial?.name || "");
+      setCategory(initial?.category || categories[0]);
+      setSalePrice(initial?.salePrice?.toString() || "");
+      setCostPrice(initial?.costPrice?.toString() || "");
+      setStock(initial?.stock?.toString() || "");
+      setThreshold(initial?.lowStockThreshold?.toString() || "5");
+    }
+  }, [open, initial]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -40,44 +58,46 @@ export default function ProductForm({ open, onClose, onSave, initial }: Props) {
 
   return (
     <Dialog open={open} onOpenChange={onClose}>
-      <DialogContent className="max-w-md" dir="rtl">
+      <DialogContent className="max-w-md" dir={dir}>
         <DialogHeader>
-          <DialogTitle className="text-right">{initial ? "تعديل المنتج" : "إضافة منتج جديد"}</DialogTitle>
+          <DialogTitle className={dir === "rtl" ? "text-right" : "text-left"}>
+            {initial ? t("editProduct") : t("addNewProduct")}
+          </DialogTitle>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <Label>اسم المنتج</Label>
-            <Input value={name} onChange={e => setName(e.target.value)} placeholder="مثال: حليب طازج" className="touch-target" required />
+            <Label>{t("productName")}</Label>
+            <Input value={name} onChange={e => setName(e.target.value)} placeholder={t("productNamePlaceholder")} className="touch-target" required />
           </div>
           <div>
-            <Label>الفئة</Label>
+            <Label>{t("category")}</Label>
             <select value={category} onChange={e => setCategory(e.target.value)} className="w-full touch-target rounded-lg border border-input bg-background px-3 py-2 text-sm">
-              {CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}
+              {categories.map(c => <option key={c} value={c}>{c}</option>)}
             </select>
           </div>
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <Label>سعر البيع ({cs})</Label>
+              <Label>{t("salePrice")} ({cs})</Label>
               <Input type="number" step="0.01" min="0" value={salePrice} onChange={e => setSalePrice(e.target.value)} className="touch-target" required />
             </div>
             <div>
-              <Label>سعر التكلفة ({cs})</Label>
+              <Label>{t("costPrice")} ({cs})</Label>
               <Input type="number" step="0.01" min="0" value={costPrice} onChange={e => setCostPrice(e.target.value)} className="touch-target" required />
             </div>
           </div>
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <Label>الكمية</Label>
+              <Label>{t("quantity")}</Label>
               <Input type="number" min="0" value={stock} onChange={e => setStock(e.target.value)} className="touch-target" required />
             </div>
             <div>
-              <Label>حد التنبيه</Label>
+              <Label>{t("alertThreshold")}</Label>
               <Input type="number" min="0" value={threshold} onChange={e => setThreshold(e.target.value)} className="touch-target" />
             </div>
           </div>
           <div className="flex gap-2 pt-2">
-            <Button type="submit" className="flex-1 touch-target">{initial ? "حفظ التعديلات" : "إضافة المنتج"}</Button>
-            <Button type="button" variant="outline" onClick={onClose} className="touch-target">إلغاء</Button>
+            <Button type="submit" className="flex-1 touch-target">{initial ? t("saveChanges") : t("addProduct")}</Button>
+            <Button type="button" variant="outline" onClick={onClose} className="touch-target">{t("cancel")}</Button>
           </div>
         </form>
       </DialogContent>
