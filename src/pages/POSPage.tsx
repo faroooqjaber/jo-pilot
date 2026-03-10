@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { getProducts, CartItem, saveTransaction, Transaction, Product, getVatRate } from "@/lib/store";
 import { getStoreSettings, CURRENCIES } from "@/lib/store-settings";
+import { useI18n } from "@/lib/i18n";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Search, Plus, Minus, Trash2, Printer, CheckCircle, Download } from "lucide-react";
@@ -9,6 +10,7 @@ import { toast } from "sonner";
 import { toPng } from "html-to-image";
 
 export default function POSPage() {
+  const { t } = useI18n();
   const [products, setProducts] = useState<Product[]>([]);
   const [cart, setCart] = useState<CartItem[]>([]);
   const [search, setSearch] = useState("");
@@ -30,14 +32,14 @@ export default function POSPage() {
 
   const addToCart = (product: Product) => {
     if (product.stock <= 0) {
-      toast.error("المنتج غير متوفر في المخزون");
+      toast.error(t("productNotAvailable"));
       return;
     }
     setCart(prev => {
       const existing = prev.find(i => i.product.id === product.id);
       if (existing) {
         if (existing.quantity >= product.stock) {
-          toast.error("لا يمكن تجاوز الكمية المتوفرة");
+          toast.error(t("cannotExceedStock"));
           return prev;
         }
         return prev.map(i => i.product.id === product.id ? { ...i, quantity: i.quantity + 1 } : i);
@@ -52,7 +54,7 @@ export default function POSPage() {
       const newQty = i.quantity + delta;
       if (newQty <= 0) return i;
       if (newQty > i.product.stock) {
-        toast.error("لا يمكن تجاوز الكمية المتوفرة");
+        toast.error(t("cannotExceedStock"));
         return i;
       }
       return { ...i, quantity: newQty };
@@ -73,13 +75,11 @@ export default function POSPage() {
     setLastTransaction(transaction);
     setCart([]);
     setProducts(getProducts());
-    toast.success("تم إتمام عملية البيع بنجاح!");
+    toast.success(t("saleCompleted"));
   };
 
   const printReceipt = () => {
-    if (receiptRef.current) {
-      window.print();
-    }
+    if (receiptRef.current) window.print();
   };
 
   const saveReceiptAsImage = async () => {
@@ -90,9 +90,9 @@ export default function POSPage() {
       link.download = `receipt-${lastTransaction?.id.slice(0, 8)}.png`;
       link.href = dataUrl;
       link.click();
-      toast.success("تم حفظ الفاتورة كصورة!");
+      toast.success(t("receiptSaved"));
     } catch {
-      toast.error("فشل حفظ الفاتورة كصورة");
+      toast.error(t("receiptSaveFailed"));
     }
   };
 
@@ -106,7 +106,7 @@ export default function POSPage() {
           <div className="relative">
             <Search className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
             <Input
-              placeholder="ابحث بالاسم أو الباركود..."
+              placeholder={t("searchByNameOrBarcode")}
               value={search}
               onChange={e => setSearch(e.target.value)}
               className="pr-10 touch-target text-base"
@@ -134,14 +134,14 @@ export default function POSPage() {
                 <p className="text-xs text-muted-foreground mt-1">{product.category}</p>
                 <p className="text-lg font-bold text-primary mt-2">{fmt(product.salePrice)}</p>
                 <div className={`text-xs mt-1 font-semibold ${outOfStock ? "text-danger" : lowStock ? "text-warning" : "text-success"}`}>
-                  {outOfStock ? "نفذ من المخزون" : lowStock ? `⚠ متبقي ${product.stock}` : `المخزون: ${product.stock}`}
+                  {outOfStock ? t("outOfStock") : lowStock ? `⚠ ${t("remaining")} ${product.stock}` : `${t("stock")}: ${product.stock}`}
                 </div>
               </button>
             );
           })}
           {filtered.length === 0 && (
             <div className="col-span-full text-center py-16 text-muted-foreground">
-              لا توجد منتجات مطابقة للبحث
+              {t("noMatchingProducts")}
             </div>
           )}
         </div>
@@ -150,8 +150,8 @@ export default function POSPage() {
       {/* Cart Sidebar */}
       <div className="w-80 lg:w-96 bg-card border-r border-border flex flex-col">
         <div className="p-4 border-b border-border">
-          <h2 className="font-bold text-lg text-card-foreground">السلة الحالية</h2>
-          <p className="text-sm text-muted-foreground">{cart.length} صنف</p>
+          <h2 className="font-bold text-lg text-card-foreground">{t("currentCart")}</h2>
+          <p className="text-sm text-muted-foreground">{cart.length} {t("items")}</p>
         </div>
 
         <div className="flex-1 overflow-auto p-3 space-y-2">
@@ -183,8 +183,8 @@ export default function POSPage() {
           {cart.length === 0 && !lastTransaction && (
             <div className="text-center py-12 text-muted-foreground">
               <ShoppingCartEmpty />
-              <p className="mt-3">السلة فارغة</p>
-              <p className="text-xs mt-1">اضغط على منتج لإضافته</p>
+              <p className="mt-3">{t("cartEmpty")}</p>
+              <p className="text-xs mt-1">{t("clickToAdd")}</p>
             </div>
           )}
           {lastTransaction && cart.length === 0 && (
@@ -193,11 +193,11 @@ export default function POSPage() {
               <div className="flex gap-2 mt-3">
                 <Button onClick={printReceipt} variant="outline" className="flex-1 touch-target gap-2">
                   <Printer className="w-4 h-4" />
-                  طباعة
+                  {t("print")}
                 </Button>
                 <Button onClick={saveReceiptAsImage} variant="outline" className="flex-1 touch-target gap-2">
                   <Download className="w-4 h-4" />
-                  حفظ كصورة
+                  {t("saveAsImage")}
                 </Button>
               </div>
             </div>
@@ -208,19 +208,19 @@ export default function POSPage() {
           <div className="p-4 border-t border-border space-y-2">
             <div className="flex justify-between text-sm text-muted-foreground">
               <span>{fmt(subtotal)}</span>
-              <span>المجموع الفرعي</span>
+              <span>{t("subtotal")}</span>
             </div>
             <div className="flex justify-between text-sm text-muted-foreground">
               <span>{fmt(tax)}</span>
-              <span>ضريبة القيمة المضافة ({vatPct}%)</span>
+              <span>{t("vat")} ({vatPct}%)</span>
             </div>
             <div className="flex justify-between text-lg font-bold text-foreground border-t border-border pt-2">
               <span>{fmt(total)}</span>
-              <span>الإجمالي</span>
+              <span>{t("grandTotal")}</span>
             </div>
             <Button onClick={finalizeSale} className="w-full touch-target text-base gap-2 mt-2" size="lg">
               <CheckCircle className="w-5 h-5" />
-              إتمام البيع
+              {t("finalizeSale")}
             </Button>
           </div>
         )}

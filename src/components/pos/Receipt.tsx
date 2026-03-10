@@ -1,8 +1,9 @@
 import { forwardRef } from "react";
 import { Transaction } from "@/lib/store";
 import { getStoreSettings, CURRENCIES } from "@/lib/store-settings";
+import { useI18n } from "@/lib/i18n";
 import { format } from "date-fns";
-import { ar } from "date-fns/locale";
+import { ar, enUS } from "date-fns/locale";
 import { ShoppingCart } from "lucide-react";
 
 interface Props {
@@ -10,12 +11,14 @@ interface Props {
 }
 
 const Receipt = forwardRef<HTMLDivElement, Props>(({ transaction }, ref) => {
+  const { t, lang, dir } = useI18n();
   const settings = getStoreSettings();
   const currencySymbol = CURRENCIES.find(c => c.code === settings.currency)?.symbol ?? "ر.س";
   const fmt = (n: number) => `${n.toFixed(2)} ${currencySymbol}`;
+  const locale = lang === "ar" ? ar : enUS;
 
   return (
-    <div ref={ref} className="receipt-print bg-card p-6 w-[80mm] mx-auto font-mono-code text-xs text-card-foreground" dir="rtl">
+    <div ref={ref} className="receipt-print bg-card p-6 w-[80mm] mx-auto font-mono-code text-xs text-card-foreground" dir={dir}>
       <div className="text-center mb-4">
         <div className="w-12 h-12 mx-auto mb-2 rounded-lg overflow-hidden flex items-center justify-center bg-muted">
           {settings.storeLogo ? (
@@ -25,11 +28,11 @@ const Receipt = forwardRef<HTMLDivElement, Props>(({ transaction }, ref) => {
           )}
         </div>
         <h2 className="text-base font-bold">{settings.storeName}</h2>
-        <p className="text-muted-foreground">فاتورة ضريبية مبسطة</p>
+        <p className="text-muted-foreground">{t("simplifiedTaxInvoice")}</p>
         <p className="text-muted-foreground mt-1">
-          {format(new Date(transaction.date), "yyyy/MM/dd - HH:mm", { locale: ar })}
+          {format(new Date(transaction.date), "yyyy/MM/dd - HH:mm", { locale })}
         </p>
-        <p className="text-muted-foreground">رقم: {transaction.id.slice(0, 8)}</p>
+        <p className="text-muted-foreground">{t("receiptNum")}: {transaction.id.slice(0, 8)}</p>
       </div>
 
       <div className="border-t border-dashed border-border my-2" />
@@ -37,17 +40,17 @@ const Receipt = forwardRef<HTMLDivElement, Props>(({ transaction }, ref) => {
       <table className="w-full text-xs">
         <thead>
           <tr className="border-b border-border">
-            <th className="text-right py-1">الصنف</th>
-            <th className="text-center py-1">الكمية</th>
-            <th className="text-left py-1">المبلغ</th>
+            <th className={`${dir === "rtl" ? "text-right" : "text-left"} py-1`}>{t("item")}</th>
+            <th className="text-center py-1">{t("qty")}</th>
+            <th className={`${dir === "rtl" ? "text-left" : "text-right"} py-1`}>{t("amount")}</th>
           </tr>
         </thead>
         <tbody>
           {transaction.items.map((item, i) => (
             <tr key={i} className="border-b border-border/50">
-              <td className="py-1 text-right">{item.product.name}</td>
+              <td className={`py-1 ${dir === "rtl" ? "text-right" : "text-left"}`}>{item.product.name}</td>
               <td className="py-1 text-center">{item.quantity}</td>
-              <td className="py-1 text-left">{(item.product.salePrice * item.quantity).toFixed(2)}</td>
+              <td className={`py-1 ${dir === "rtl" ? "text-left" : "text-right"}`}>{(item.product.salePrice * item.quantity).toFixed(2)}</td>
             </tr>
           ))}
         </tbody>
@@ -57,15 +60,15 @@ const Receipt = forwardRef<HTMLDivElement, Props>(({ transaction }, ref) => {
 
       <div className="space-y-1">
         <div className="flex justify-between">
-          <span>المجموع الفرعي:</span>
+          <span>{t("subtotal")}:</span>
           <span>{fmt(transaction.subtotal)}</span>
         </div>
         <div className="flex justify-between">
-          <span>ضريبة القيمة المضافة ({settings.vatRate}%):</span>
+          <span>{t("vat")} ({settings.vatRate}%):</span>
           <span>{fmt(transaction.tax)}</span>
         </div>
         <div className="flex justify-between font-bold text-sm border-t border-border pt-1">
-          <span>الإجمالي:</span>
+          <span>{t("grandTotal")}:</span>
           <span>{fmt(transaction.total)}</span>
         </div>
       </div>
@@ -73,8 +76,8 @@ const Receipt = forwardRef<HTMLDivElement, Props>(({ transaction }, ref) => {
       <div className="border-t border-dashed border-border my-3" />
 
       <div className="text-center text-muted-foreground">
-        <p>شكراً لزيارتكم!</p>
-        <p>نسعد بخدمتكم دائماً</p>
+        <p>{t("thankYou")}</p>
+        <p>{t("happyToServe")}</p>
       </div>
     </div>
   );

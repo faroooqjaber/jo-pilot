@@ -1,17 +1,12 @@
 import { ReactNode, useState } from "react";
 import { Link, useLocation } from "react-router-dom";
-import { LayoutDashboard, Package, ShoppingCart, Moon, Sun, Settings } from "lucide-react";
+import { LayoutDashboard, Package, ShoppingCart, Moon, Sun, Settings, BarChart3 } from "lucide-react";
 import { getStoreSettings } from "@/lib/store-settings";
-
-const navItems = [
-  { path: "/", label: "نقطة البيع", icon: ShoppingCart },
-  { path: "/products", label: "المنتجات", icon: Package },
-  { path: "/dashboard", label: "لوحة التحكم", icon: LayoutDashboard },
-  { path: "/settings", label: "الإعدادات", icon: Settings },
-];
+import { useI18n } from "@/lib/i18n";
 
 export default function POSLayout({ children }: { children: ReactNode }) {
   const location = useLocation();
+  const { t, dir } = useI18n();
   const [dark, setDark] = useState(() => {
     if (typeof window !== 'undefined') {
       return document.documentElement.classList.contains('dark');
@@ -21,14 +16,22 @@ export default function POSLayout({ children }: { children: ReactNode }) {
 
   const settings = getStoreSettings();
 
+  const navItems = [
+    { path: "/", label: t("navPOS"), icon: ShoppingCart },
+    { path: "/products", label: t("navProducts"), icon: Package },
+    { path: "/dashboard", label: t("navDashboard"), icon: LayoutDashboard },
+    { path: "/reports", label: t("navReports"), icon: BarChart3 },
+    { path: "/settings", label: t("navSettings"), icon: Settings },
+  ];
+
   const toggleDark = () => {
     document.documentElement.classList.toggle('dark');
     setDark(!dark);
   };
 
   return (
-    <div className="flex h-screen overflow-hidden" dir="rtl">
-      <aside className="w-20 lg:w-64 bg-sidebar flex flex-col border-l border-sidebar-border shrink-0">
+    <div className="flex h-screen overflow-hidden" dir={dir}>
+      <aside className={`w-20 lg:w-64 bg-sidebar flex flex-col ${dir === "rtl" ? "border-l" : "border-r"} border-sidebar-border shrink-0`}>
         <div className="p-4 flex items-center gap-3 border-b border-sidebar-border">
           <div className="w-10 h-10 rounded-lg bg-primary flex items-center justify-center overflow-hidden shrink-0">
             {settings.storeLogo ? (
@@ -66,7 +69,7 @@ export default function POSLayout({ children }: { children: ReactNode }) {
             className="w-full flex items-center justify-center lg:justify-start gap-2 px-3 py-3 rounded-lg text-sidebar-foreground hover:bg-sidebar-accent touch-target transition-colors"
           >
             {dark ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
-            <span className="hidden lg:block text-sm">{dark ? "الوضع الفاتح" : "الوضع الداكن"}</span>
+            <span className="hidden lg:block text-sm">{dark ? t("lightMode") : t("darkMode")}</span>
           </button>
         </div>
       </aside>
