@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { getTodayStats, getLowStockProducts, getTransactions, Product, Transaction } from "@/lib/store";
-import { getStoreSettings, CURRENCIES } from "@/lib/store-settings";
+import { JOD_CURRENCY } from "@/lib/store-settings";
 import { useI18n } from "@/lib/i18n";
 import { DollarSign, ShoppingBag, AlertTriangle, TrendingUp } from "lucide-react";
 import { format } from "date-fns";
@@ -12,8 +12,7 @@ export default function DashboardPage() {
   const [lowStock, setLowStock] = useState<Product[]>([]);
   const [recentTransactions, setRecentTransactions] = useState<Transaction[]>([]);
 
-  const settings = getStoreSettings();
-  const currencySymbol = CURRENCIES.find(c => c.code === settings.currency)?.symbol ?? "ر.س";
+  const currencySymbol = JOD_CURRENCY.symbol;
   const fmt = (n: number) => `${n.toFixed(2)} ${currencySymbol}`;
   const locale = lang === "ar" ? ar : enUS;
 

@@ -1,10 +1,9 @@
 import { useState, useRef } from "react";
-import { getStoreSettings, saveStoreSettings, CURRENCIES } from "@/lib/store-settings";
-import { useI18n, Language } from "@/lib/i18n";
+import { getStoreSettings, saveStoreSettings, JOD_CURRENCY, JORDAN_DEFAULT_VAT_RATE } from "@/lib/store-settings";
+import { useI18n } from "@/lib/i18n";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { ShoppingCart, Upload, Trash2, Save, Globe } from "lucide-react";
 import { toast } from "sonner";
 
@@ -36,8 +35,21 @@ export default function SettingsPage() {
       toast.error(t("vatRangeError"));
       return;
     }
-    saveStoreSettings(settings);
+
+    const previous = getStoreSettings();
+    const vatChanged = previous.vatRate !== settings.vatRate;
+
+    saveStoreSettings({
+      storeName: settings.storeName,
+      storeLogo: settings.storeLogo,
+      vatRate: settings.vatRate,
+    });
+
     toast.success(t("settingsSaved"));
+
+    if (vatChanged) {
+      toast.info(t("vatUpdatedMerchantNotice"));
+    }
   };
 
   return (
@@ -116,21 +128,12 @@ export default function SettingsPage() {
           <p className="text-xs text-muted-foreground">{t("logoHint")}</p>
         </div>
 
-        {/* Currency */}
+        {/* Fixed Currency */}
         <div className="space-y-2">
           <Label className="text-sm font-semibold">{t("currency")}</Label>
-          <Select value={settings.currency} onValueChange={v => setSettings(prev => ({ ...prev, currency: v }))}>
-            <SelectTrigger className="text-base">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent className="max-h-64">
-              {CURRENCIES.map(c => (
-                <SelectItem key={c.code} value={c.code}>
-                  {c.symbol} - {c.name}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+          <div className="text-base border border-border rounded-lg bg-muted px-3 py-2 text-foreground">
+            {t("jordanianDinar")} - {JOD_CURRENCY.symbol}
+          </div>
         </div>
 
         {/* VAT Rate */}
@@ -146,7 +149,9 @@ export default function SettingsPage() {
             onChange={e => setSettings(prev => ({ ...prev, vatRate: parseFloat(e.target.value) || 0 }))}
             className="text-base"
           />
-          <p className="text-xs text-muted-foreground">{t("vatHint")}</p>
+          <p className="text-xs text-muted-foreground">
+            {t("jordanVatHint")} ({JORDAN_DEFAULT_VAT_RATE}%)
+          </p>
         </div>
 
         <Button onClick={handleSave} className="w-full touch-target gap-2" size="lg">

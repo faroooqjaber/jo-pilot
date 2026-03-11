@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { getProducts, addProduct, updateProduct, deleteProduct, Product } from "@/lib/store";
-import { getStoreSettings, CURRENCIES } from "@/lib/store-settings";
+import { JOD_CURRENCY } from "@/lib/store-settings";
+import { getLocalizedCategoryLabel } from "@/lib/product-categories";
 import { useI18n } from "@/lib/i18n";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -11,8 +12,7 @@ import { toast } from "sonner";
 
 export default function ProductsPage() {
   const { t } = useI18n();
-  const settings = getStoreSettings();
-  const cs = CURRENCIES.find(c => c.code === settings.currency)?.symbol ?? "ر.س";
+  const cs = JOD_CURRENCY.symbol;
   const [products, setProducts] = useState<Product[]>([]);
   const [search, setSearch] = useState("");
   const [formOpen, setFormOpen] = useState(false);
@@ -21,9 +21,15 @@ export default function ProductsPage() {
   const reload = () => setProducts(getProducts());
   useEffect(reload, []);
 
-  const filtered = products.filter(p =>
-    p.name.includes(search) || p.barcode.includes(search) || p.category.includes(search)
-  );
+  const query = search.trim().toLowerCase();
+  const filtered = products.filter((p) => {
+    const localizedCategory = getLocalizedCategoryLabel(p.category, t).toLowerCase();
+    return (
+      p.name.toLowerCase().includes(query) ||
+      p.barcode.toLowerCase().includes(query) ||
+      localizedCategory.includes(query)
+    );
+  });
 
   const handleAdd = (data: Parameters<typeof addProduct>[0]) => {
     addProduct(data);
@@ -81,7 +87,7 @@ export default function ProductsPage() {
                     </span>
                   )}
                 </div>
-                <p className="text-sm text-muted-foreground">{product.category}</p>
+                <p className="text-sm text-muted-foreground">{getLocalizedCategoryLabel(product.category, t)}</p>
                 <div className="flex gap-4 mt-2 text-sm">
                   <span className="text-foreground">{t("salePrice")}: <strong className="text-primary">{product.salePrice.toFixed(2)} {cs}</strong></span>
                   <span className="text-muted-foreground">{t("costPrice")}: {product.costPrice.toFixed(2)} {cs}</span>
