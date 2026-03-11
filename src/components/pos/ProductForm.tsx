@@ -1,6 +1,12 @@
 import { useState, useEffect } from "react";
 import { Product } from "@/lib/store";
-import { getStoreSettings, CURRENCIES } from "@/lib/store-settings";
+import { JOD_CURRENCY } from "@/lib/store-settings";
+import {
+  PRODUCT_CATEGORY_OPTIONS,
+  ProductCategory,
+  getCategoryTranslationKey,
+  normalizeProductCategory,
+} from "@/lib/product-categories";
 import { useI18n } from "@/lib/i18n";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -16,25 +22,19 @@ interface Props {
 
 export default function ProductForm({ open, onClose, onSave, initial }: Props) {
   const { t, dir } = useI18n();
-  const cs = CURRENCIES.find(c => c.code === getStoreSettings().currency)?.symbol ?? "ر.س";
 
   const [name, setName] = useState("");
-  const [category, setCategory] = useState("");
+  const [category, setCategory] = useState<ProductCategory>("beverages");
   const [salePrice, setSalePrice] = useState("");
   const [costPrice, setCostPrice] = useState("");
   const [stock, setStock] = useState("");
   const [threshold, setThreshold] = useState("5");
 
-  const categories = [
-    t("catBeverages"), t("catFood"), t("catCleaning"),
-    t("catElectronics"), t("catClothing"), t("catOther"),
-  ];
-
   // Reset form when initial changes or dialog opens
   useEffect(() => {
     if (open) {
       setName(initial?.name || "");
-      setCategory(initial?.category || categories[0]);
+      setCategory(normalizeProductCategory(initial?.category));
       setSalePrice(initial?.salePrice?.toString() || "");
       setCostPrice(initial?.costPrice?.toString() || "");
       setStock(initial?.stock?.toString() || "");
@@ -71,17 +71,19 @@ export default function ProductForm({ open, onClose, onSave, initial }: Props) {
           </div>
           <div>
             <Label>{t("category")}</Label>
-            <select value={category} onChange={e => setCategory(e.target.value)} className="w-full touch-target rounded-lg border border-input bg-background px-3 py-2 text-sm">
-              {categories.map(c => <option key={c} value={c}>{c}</option>)}
+            <select value={category} onChange={e => setCategory(e.target.value as ProductCategory)} className="w-full touch-target rounded-lg border border-input bg-background px-3 py-2 text-sm">
+              {PRODUCT_CATEGORY_OPTIONS.map((option) => (
+                <option key={option} value={option}>{t(getCategoryTranslationKey(option))}</option>
+              ))}
             </select>
           </div>
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <Label>{t("salePrice")} ({cs})</Label>
+              <Label>{t("salePrice")} ({JOD_CURRENCY.symbol})</Label>
               <Input type="number" step="0.01" min="0" value={salePrice} onChange={e => setSalePrice(e.target.value)} className="touch-target" required />
             </div>
             <div>
-              <Label>{t("costPrice")} ({cs})</Label>
+              <Label>{t("costPrice")} ({JOD_CURRENCY.symbol})</Label>
               <Input type="number" step="0.01" min="0" value={costPrice} onChange={e => setCostPrice(e.target.value)} className="touch-target" required />
             </div>
           </div>

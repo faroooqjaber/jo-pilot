@@ -1,6 +1,6 @@
 import { forwardRef } from "react";
-import { Transaction } from "@/lib/store";
-import { getStoreSettings, CURRENCIES } from "@/lib/store-settings";
+import { Transaction, getTransactionReceiptNumber } from "@/lib/store";
+import { getStoreSettings, JOD_CURRENCY } from "@/lib/store-settings";
 import { useI18n } from "@/lib/i18n";
 import { format } from "date-fns";
 import { ar, enUS } from "date-fns/locale";
@@ -13,9 +13,10 @@ interface Props {
 const Receipt = forwardRef<HTMLDivElement, Props>(({ transaction }, ref) => {
   const { t, lang, dir } = useI18n();
   const settings = getStoreSettings();
-  const currencySymbol = CURRENCIES.find(c => c.code === settings.currency)?.symbol ?? "ر.س";
+  const currencySymbol = JOD_CURRENCY.symbol;
   const fmt = (n: number) => `${n.toFixed(2)} ${currencySymbol}`;
   const locale = lang === "ar" ? ar : enUS;
+  const receiptNumber = getTransactionReceiptNumber(transaction);
 
   return (
     <div ref={ref} className="receipt-print bg-card p-6 w-[80mm] mx-auto font-mono-code text-xs text-card-foreground" dir={dir}>
@@ -28,11 +29,10 @@ const Receipt = forwardRef<HTMLDivElement, Props>(({ transaction }, ref) => {
           )}
         </div>
         <h2 className="text-base font-bold">{settings.storeName}</h2>
-        <p className="text-muted-foreground">{t("simplifiedTaxInvoice")}</p>
         <p className="text-muted-foreground mt-1">
           {format(new Date(transaction.date), "yyyy/MM/dd - HH:mm", { locale })}
         </p>
-        <p className="text-muted-foreground">{t("receiptNum")}: {transaction.id.slice(0, 8)}</p>
+        <p className="text-muted-foreground">{t("receiptNum")}: {receiptNumber}</p>
       </div>
 
       <div className="border-t border-dashed border-border my-2" />
@@ -50,7 +50,7 @@ const Receipt = forwardRef<HTMLDivElement, Props>(({ transaction }, ref) => {
             <tr key={i} className="border-b border-border/50">
               <td className={`py-1 ${dir === "rtl" ? "text-right" : "text-left"}`}>{item.product.name}</td>
               <td className="py-1 text-center">{item.quantity}</td>
-              <td className={`py-1 ${dir === "rtl" ? "text-left" : "text-right"}`}>{(item.product.salePrice * item.quantity).toFixed(2)}</td>
+              <td className={`py-1 ${dir === "rtl" ? "text-left" : "text-right"}`}>{fmt(item.product.salePrice * item.quantity)}</td>
             </tr>
           ))}
         </tbody>

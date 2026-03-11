@@ -1,3 +1,5 @@
+import { getStoreSettings, JORDAN_DEFAULT_VAT_RATE } from "@/lib/store-settings";
+
 // POS Data Store using localStorage for persistence
 // Barcode Generation: Uses EAN-13 format with auto-generated check digit
 
@@ -20,6 +22,7 @@ export interface CartItem {
 
 export interface Transaction {
   id: string;
+  receiptNumber?: number;
   items: CartItem[];
   subtotal: number;
   tax: number;
@@ -29,16 +32,62 @@ export interface Transaction {
 
 const PRODUCTS_KEY = 'pos_products';
 const TRANSACTIONS_KEY = 'pos_transactions';
+const RECEIPT_COUNTER_KEY = 'pos_daily_receipt_counter';
+
 // VAT_RATE is now dynamic from store settings
 function getVatRate(): number {
   try {
-    const data = localStorage.getItem('pos_store_settings');
-    if (data) {
-      const settings = JSON.parse(data);
-      return (settings.vatRate ?? 15) / 100;
-    }
-  } catch {}
-  return 0.15;
+    return getStoreSettings().vatRate / 100;
+  } catch {
+    return JORDAN_DEFAULT_VAT_RATE / 100;
+  }
+}
+
+function getReceiptDateKey(date: Date): string {
+  const y = date.getFullYear();
+  const m = String(date.getMonth() + 1).padStart(2, '0');
+  const d = String(date.getDate()).padStart(2, '0');
+  return `${y}-${m}-${d}`;
+}
+
+function getNextDailyReceiptNumber(now: Date): number {
+  const dateKey = getReceiptDateKey(now);
+
+  try {
+    const raw = localStorage.getItem(RECEIPT_COUNTER_KEY);
+    const parsed = raw ? (JSON.parse(raw) as { dateKey?: string; lastNumber?: number }) : null;
+
+    const currentDateKey = parsed?.dateKey;
+    const currentLastNumber = Number(parsed?.lastNumber) || 0;
+
+    const nextNumber = currentDateKey === dateKey ? currentLastNumber + 1 : 1;
+
+    localStorage.setItem(
+      RECEIPT_COUNTER_KEY,
+      JSON.stringify({
+        dateKey,
+        lastNumber: nextNumber,
+      }),
+    );
+
+    return nextNumber;
+  } catch {
+    return 1;
+  }
+}
+
+export function getTransactionReceiptNumber(transaction: Transaction): number {
+  if (typeof transaction.receiptNumber === "number" && transaction.receiptNumber > 0) {
+    return transaction.receiptNumber;
+  }
+
+  const transactionDate = new Date(transaction.date).toDateString();
+  const sameDay = getTransactions()
+    .filter((t) => new Date(t.date).toDateString() === transactionDate)
+    .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+
+  const index = sameDay.findIndex((t) => t.id === transaction.id);
+  return index >= 0 ? index + 1 : 1;
 }
 
 /**
@@ -110,14 +159,16 @@ export function saveTransaction(items: CartItem[]): Transaction {
   const subtotal = items.reduce((sum, item) => sum + item.product.salePrice * item.quantity, 0);
   const tax = subtotal * getVatRate();
   const total = subtotal + tax;
+  const now = new Date();
 
   const transaction: Transaction = {
     id: crypto.randomUUID(),
+    receiptNumber: getNextDailyReceiptNumber(now),
     items,
     subtotal,
     tax,
     total,
-    date: new Date().toISOString(),
+    date: now.toISOString(),
   };
 
   // Save transaction

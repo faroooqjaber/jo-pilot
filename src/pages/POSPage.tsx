@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { getProducts, CartItem, saveTransaction, Transaction, Product, getVatRate } from "@/lib/store";
-import { getStoreSettings, CURRENCIES } from "@/lib/store-settings";
+import { getStoreSettings, JOD_CURRENCY } from "@/lib/store-settings";
+import { getLocalizedCategoryLabel } from "@/lib/product-categories";
 import { useI18n } from "@/lib/i18n";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -10,7 +11,7 @@ import { toast } from "sonner";
 import { toPng } from "html-to-image";
 
 export default function POSPage() {
-  const { t } = useI18n();
+  const { t, dir } = useI18n();
   const [products, setProducts] = useState<Product[]>([]);
   const [cart, setCart] = useState<CartItem[]>([]);
   const [search, setSearch] = useState("");
@@ -18,7 +19,7 @@ export default function POSPage() {
   const receiptRef = useRef<HTMLDivElement>(null);
 
   const settings = getStoreSettings();
-  const currencySymbol = CURRENCIES.find(c => c.code === settings.currency)?.symbol ?? "ر.س";
+  const currencySymbol = JOD_CURRENCY.symbol;
   const vatRate = getVatRate();
   const vatPct = settings.vatRate;
 
@@ -26,9 +27,15 @@ export default function POSPage() {
     setProducts(getProducts());
   }, []);
 
-  const filtered = products.filter(p =>
-    p.name.includes(search) || p.barcode.includes(search) || p.category.includes(search)
-  );
+  const query = search.trim().toLowerCase();
+  const filtered = products.filter((p) => {
+    const localizedCategory = getLocalizedCategoryLabel(p.category, t).toLowerCase();
+    return (
+      p.name.toLowerCase().includes(query) ||
+      p.barcode.toLowerCase().includes(query) ||
+      localizedCategory.includes(query)
+    );
+  });
 
   const addToCart = (product: Product) => {
     if (product.stock <= 0) {
@@ -87,7 +94,8 @@ export default function POSPage() {
     try {
       const dataUrl = await toPng(receiptRef.current, { backgroundColor: '#ffffff', pixelRatio: 2 });
       const link = document.createElement('a');
-      link.download = `receipt-${lastTransaction?.id.slice(0, 8)}.png`;
+      const receiptNumber = lastTransaction?.receiptNumber ?? 1;
+      link.download = `receipt-${receiptNumber}.png`;
       link.href = dataUrl;
       link.click();
       toast.success(t("receiptSaved"));
@@ -99,17 +107,17 @@ export default function POSPage() {
   const fmt = (n: number) => `${n.toFixed(2)} ${currencySymbol}`;
 
   return (
-    <div className="flex h-full">
+    <div className="flex h-full" dir={dir}>
       {/* Products Grid */}
       <div className="flex-1 flex flex-col p-4 overflow-hidden">
         <div className="mb-4">
           <div className="relative">
-            <Search className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+            <Search className={`absolute top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground ${dir === "rtl" ? "right-3" : "left-3"}`} />
             <Input
               placeholder={t("searchByNameOrBarcode")}
               value={search}
               onChange={e => setSearch(e.target.value)}
-              className="pr-10 touch-target text-base"
+              className={`${dir === "rtl" ? "pr-10" : "pl-10"} touch-target text-base`}
               autoFocus
             />
           </div>
@@ -124,14 +132,14 @@ export default function POSPage() {
                 key={product.id}
                 onClick={() => addToCart(product)}
                 disabled={outOfStock}
-                className={`p-4 rounded-xl border text-right transition-all touch-target pos-shadow hover:pos-shadow-lg animate-fade-in ${
+                className={`p-4 rounded-xl border transition-all touch-target pos-shadow hover:pos-shadow-lg animate-fade-in ${dir === "rtl" ? "text-right" : "text-left"} ${
                   outOfStock
                     ? "bg-muted opacity-60 cursor-not-allowed border-border"
                     : "bg-card border-border hover:border-primary cursor-pointer active:scale-[0.97]"
                 }`}
               >
                 <h3 className="font-bold text-sm text-card-foreground truncate">{product.name}</h3>
-                <p className="text-xs text-muted-foreground mt-1">{product.category}</p>
+                <p className="text-xs text-muted-foreground mt-1">{getLocalizedCategoryLabel(product.category, t)}</p>
                 <p className="text-lg font-bold text-primary mt-2">{fmt(product.salePrice)}</p>
                 <div className={`text-xs mt-1 font-semibold ${outOfStock ? "text-danger" : lowStock ? "text-warning" : "text-success"}`}>
                   {outOfStock ? t("outOfStock") : lowStock ? `⚠ ${t("remaining")} ${product.stock}` : `${t("stock")}: ${product.stock}`}
@@ -148,7 +156,7 @@ export default function POSPage() {
       </div>
 
       {/* Cart Sidebar */}
-      <div className="w-80 lg:w-96 bg-card border-r border-border flex flex-col">
+      <div className={`w-80 lg:w-96 bg-card flex flex-col ${dir === "rtl" ? "border-l" : "border-r"} border-border`}>
         <div className="p-4 border-b border-border">
           <h2 className="font-bold text-lg text-card-foreground">{t("currentCart")}</h2>
           <p className="text-sm text-muted-foreground">{cart.length} {t("items")}</p>
@@ -161,7 +169,7 @@ export default function POSPage() {
                 <button onClick={() => removeFromCart(item.product.id)} className="text-destructive hover:text-destructive/80 p-1">
                   <Trash2 className="w-4 h-4" />
                 </button>
-                <div className="text-right flex-1 mr-2">
+                <div className={`${dir === "rtl" ? "text-right mr-2" : "text-left ml-2"} flex-1`}>
                   <p className="font-semibold text-sm text-foreground">{item.product.name}</p>
                   <p className="text-xs text-muted-foreground">{fmt(item.product.salePrice)}</p>
                 </div>

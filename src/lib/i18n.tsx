@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, ReactNode, useCallback } from "react";
+import { createContext, useContext, useEffect, useState, ReactNode, useCallback } from "react";
 
 export type Language = "ar" | "en";
 
@@ -27,7 +27,7 @@ const translations = {
   clickToAdd: { ar: "اضغط على منتج لإضافته", en: "Click a product to add it" },
   items: { ar: "صنف", en: "items" },
   subtotal: { ar: "المجموع الفرعي", en: "Subtotal" },
-  vat: { ar: "ضريبة القيمة المضافة", en: "VAT" },
+  vat: { ar: "ضريبة المبيعات", en: "Sales Tax" },
   grandTotal: { ar: "الإجمالي", en: "Grand Total" },
   finalizeSale: { ar: "إتمام البيع", en: "Finalize Sale" },
   print: { ar: "طباعة", en: "Print" },
@@ -92,12 +92,18 @@ const translations = {
   logoHint: { ar: "يُستخدم في الفاتورة والقائمة الجانبية. الحد الأقصى 2 ميجابايت.", en: "Used in receipts and sidebar. Max 2MB." },
   imageTooLarge: { ar: "حجم الصورة يجب أن لا يتجاوز 2 ميجابايت", en: "Image must be under 2MB" },
   currency: { ar: "العملة", en: "Currency" },
-  vatRate: { ar: "نسبة ضريبة القيمة المضافة (%)", en: "VAT Rate (%)" },
+  jordanianDinar: { ar: "دينار أردني (د.أ)", en: "Jordanian Dinar (JOD)" },
+  vatRate: { ar: "نسبة ضريبة المبيعات (%)", en: "Sales Tax Rate (%)" },
   vatHint: { ar: "أدخل 0 لتعطيل الضريبة", en: "Enter 0 to disable tax" },
+  jordanVatHint: { ar: "ضريبة الأردن الافتراضية 16%. عند تعديلها سيتم إشعار التاجر.", en: "Jordan default tax is 16%. Merchant gets notified on changes." },
   saveSettings: { ar: "حفظ الإعدادات", en: "Save Settings" },
   settingsSaved: { ar: "تم حفظ الإعدادات بنجاح!", en: "Settings saved successfully!" },
   storeNameRequired: { ar: "اسم المتجر مطلوب", en: "Store name is required" },
   vatRangeError: { ar: "نسبة الضريبة يجب أن تكون بين 0 و 100", en: "Tax rate must be between 0 and 100" },
+  vatUpdatedMerchantNotice: {
+    ar: "تم تحديث ضريبة الأردن، يرجى إشعار التاجر ومراجعة الالتزام الضريبي.",
+    en: "Jordan tax was updated. Please notify the merchant and review tax compliance.",
+  },
   language: { ar: "اللغة", en: "Language" },
   arabic: { ar: "العربية", en: "Arabic" },
   english: { ar: "الإنجليزية", en: "English" },
@@ -126,6 +132,10 @@ const translations = {
   revenue: { ar: "الإيرادات", en: "Revenue" },
   unitsSold: { ar: "وحدات مباعة", en: "Units Sold" },
   noDataAvailable: { ar: "لا توجد بيانات متاحة", en: "No data available" },
+
+  // Not Found
+  pageNotFound: { ar: "عذراً، الصفحة غير موجودة", en: "Oops! Page not found" },
+  returnToHome: { ar: "العودة للرئيسية", en: "Return to Home" },
 } as const;
 
 export type TranslationKey = keyof typeof translations;
@@ -155,7 +165,11 @@ export function I18nProvider({ children }: { children: ReactNode }) {
 
   const setLang = useCallback((l: Language) => {
     setLangState(l);
-    localStorage.setItem("pos_lang", l);
+    try {
+      localStorage.setItem("pos_lang", l);
+    } catch {
+      // no-op for private mode or restricted storage
+    }
   }, []);
 
   const t = useCallback((key: TranslationKey): string => {
@@ -163,6 +177,11 @@ export function I18nProvider({ children }: { children: ReactNode }) {
   }, [lang]);
 
   const dir = lang === "ar" ? "rtl" : "ltr";
+
+  useEffect(() => {
+    document.documentElement.dir = dir;
+    document.documentElement.lang = lang;
+  }, [dir, lang]);
 
   return (
     <I18nContext.Provider value={{ lang, setLang, t, dir }}>

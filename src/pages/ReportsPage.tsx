@@ -1,13 +1,14 @@
 import { useState, useEffect, useMemo } from "react";
 import { getTransactions, getProducts, Transaction } from "@/lib/store";
-import { getStoreSettings, CURRENCIES } from "@/lib/store-settings";
+import { JOD_CURRENCY } from "@/lib/store-settings";
+import { getCategoryTranslationKey, normalizeProductCategory } from "@/lib/product-categories";
 import { useI18n } from "@/lib/i18n";
 import { DollarSign, ShoppingBag, TrendingUp, PieChart as PieChartIcon } from "lucide-react";
 import {
   LineChart, Line, BarChart, Bar, PieChart, Pie, Cell,
   XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend,
 } from "recharts";
-import { format, subDays, startOfDay, startOfWeek, startOfMonth } from "date-fns";
+import { format, subDays, startOfWeek, startOfMonth } from "date-fns";
 import { ar, enUS } from "date-fns/locale";
 
 const COLORS = [
@@ -18,12 +19,11 @@ const COLORS = [
 type Period = "daily" | "weekly" | "monthly";
 
 export default function ReportsPage() {
-  const { t, lang } = useI18n();
+  const { t, lang, dir } = useI18n();
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [period, setPeriod] = useState<Period>("daily");
 
-  const settings = getStoreSettings();
-  const cs = CURRENCIES.find(c => c.code === settings.currency)?.symbol ?? "ر.س";
+  const cs = JOD_CURRENCY.symbol;
   const fmt = (n: number) => `${n.toFixed(2)} ${cs}`;
   const locale = lang === "ar" ? ar : enUS;
 
@@ -98,7 +98,7 @@ export default function ReportsPage() {
       if (key in groups) groups[key] += tx.total;
     });
     return Object.entries(groups).map(([date, revenue]) => ({
-      label: format(new Date(date + "-01"), "MMM", { locale }),
+      label: format(new Date(`${date}-01`), "MMM", { locale }),
       revenue,
     }));
   }, [transactions, period, locale]);
@@ -121,12 +121,16 @@ export default function ReportsPage() {
     const map: Record<string, number> = {};
     transactions.forEach(tx => {
       tx.items.forEach(item => {
-        const cat = item.product.category || "Other";
-        map[cat] = (map[cat] || 0) + item.product.salePrice * item.quantity;
+        const categoryKey = normalizeProductCategory(item.product.category);
+        map[categoryKey] = (map[categoryKey] || 0) + item.product.salePrice * item.quantity;
       });
     });
-    return Object.entries(map).map(([name, value]) => ({ name, value }));
-  }, [transactions]);
+
+    return Object.entries(map).map(([key, value]) => ({
+      name: t(getCategoryTranslationKey(key)),
+      value,
+    }));
+  }, [transactions, t]);
 
   const statCards = [
     { icon: <DollarSign className="w-6 h-6" />, label: t("totalSales"), value: fmt(stats.totalSales), color: "bg-primary/10 text-primary" },
@@ -136,7 +140,7 @@ export default function ReportsPage() {
   ];
 
   return (
-    <div className="p-6 space-y-6">
+    <div className="p-6 space-y-6" dir={dir}>
       <h1 className="text-2xl font-bold text-foreground">{t("reports")}</h1>
 
       {/* Summary Cards */}
@@ -198,7 +202,7 @@ export default function ReportsPage() {
               <BarChart data={topProducts} layout="vertical">
                 <CartesianGrid strokeDasharray="3 3" stroke="hsl(220, 13%, 88%)" />
                 <XAxis type="number" tick={{ fontSize: 12 }} />
-                <YAxis dataKey="name" type="category" width={100} tick={{ fontSize: 11 }} />
+                <YAxis dataKey="name" type="category" width={lang === "ar" ? 140 : 110} tick={{ fontSize: 11 }} />
                 <Tooltip />
                 <Bar dataKey="qty" fill="hsl(160, 84%, 39%)" radius={[0, 6, 6, 0]} name={t("unitsSold")} />
               </BarChart>
