@@ -31,25 +31,15 @@ export default function SettingsPage() {
       toast.error(t("storeNameRequired"));
       return;
     }
-    if (settings.vatRate < 0 || settings.vatRate > 100) {
-      toast.error(t("vatRangeError"));
-      return;
-    }
 
-    const previous = getStoreSettings();
-    const vatChanged = previous.vatRate !== settings.vatRate;
-
+    // VAT is fixed at Jordan default, cannot be changed
     saveStoreSettings({
       storeName: settings.storeName,
       storeLogo: settings.storeLogo,
-      vatRate: settings.vatRate,
+      vatRate: JORDAN_DEFAULT_VAT_RATE,
     });
 
     toast.success(t("settingsSaved"));
-
-    if (vatChanged) {
-      toast.info(t("vatUpdatedMerchantNotice"));
-    }
   };
 
   return (
@@ -136,21 +126,20 @@ export default function SettingsPage() {
           </div>
         </div>
 
-        {/* VAT Rate */}
+        {/* VAT Rate - Fixed at 16% */}
         <div className="space-y-2">
-          <Label htmlFor="vatRate" className="text-sm font-semibold">{t("vatRate")}</Label>
-          <Input
-            id="vatRate"
-            type="number"
-            min="0"
-            max="100"
-            step="0.5"
-            value={settings.vatRate}
-            onChange={e => setSettings(prev => ({ ...prev, vatRate: parseFloat(e.target.value) || 0 }))}
-            className="text-base"
-          />
+          <Label className="text-sm font-semibold">{t("vatRate")}</Label>
+          <div className="text-base border border-border rounded-lg bg-muted px-3 py-2 text-foreground flex items-center justify-between">
+            <span>{JORDAN_DEFAULT_VAT_RATE}%</span>
+            <span className="text-xs text-muted-foreground">
+              {lang === "ar" ? "ثابت (الأردن)" : "Fixed (Jordan)"}
+            </span>
+          </div>
           <p className="text-xs text-muted-foreground">
-            {t("jordanVatHint")} ({JORDAN_DEFAULT_VAT_RATE}%)
+            {lang === "ar" 
+              ? `نسبة الضريبة ثابتة في الأردن ${JORDAN_DEFAULT_VAT_RATE}%`
+              : `Fixed VAT rate for Jordan: ${JORDAN_DEFAULT_VAT_RATE}%`
+            }
           </p>
         </div>
 
