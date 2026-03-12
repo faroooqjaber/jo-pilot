@@ -136,21 +136,15 @@ export default function SettingsPage() {
           </div>
         </div>
 
-        {/* VAT Rate */}
+        {/* VAT Rate - Fixed at 16% */}
         <div className="space-y-2">
-          <Label htmlFor="vatRate" className="text-sm font-semibold">{t("vatRate")}</Label>
-          <Input
-            id="vatRate"
-            type="number"
-            min="0"
-            max="100"
-            step="0.5"
-            value={settings.vatRate}
-            onChange={e => setSettings(prev => ({ ...prev, vatRate: parseFloat(e.target.value) || 0 }))}
-            className="text-base"
-          />
+          <Label className="text-sm font-semibold">{t("vatRate")}</Label>
+          <div className="text-base border border-border rounded-lg bg-muted px-3 py-2 text-foreground flex items-center justify-between">
+            <span>{JORDAN_DEFAULT_VAT_RATE}%</span>
+            <span className="text-xs text-muted-foreground">{t("fixedVatJordan")}</span>
+          </div>
           <p className="text-xs text-muted-foreground">
-            {t("jordanVatHint")} ({JORDAN_DEFAULT_VAT_RATE}%)
+            {t("jordanVatFixed")} ({JORDAN_DEFAULT_VAT_RATE}%)
           </p>
         </div>
 
