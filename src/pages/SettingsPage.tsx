@@ -131,10 +131,15 @@ export default function SettingsPage() {
           <Label className="text-sm font-semibold">{t("vatRate")}</Label>
           <div className="text-base border border-border rounded-lg bg-muted px-3 py-2 text-foreground flex items-center justify-between">
             <span>{JORDAN_DEFAULT_VAT_RATE}%</span>
-            <span className="text-xs text-muted-foreground">{t("fixedVatJordan")}</span>
+            <span className="text-xs text-muted-foreground">
+              {lang === "ar" ? "ثابت (الأردن)" : "Fixed (Jordan)"}
+            </span>
           </div>
           <p className="text-xs text-muted-foreground">
-            {t("jordanVatFixed")} ({JORDAN_DEFAULT_VAT_RATE}%)
+            {lang === "ar" 
+              ? `نسبة الضريبة ثابتة في الأردن ${JORDAN_DEFAULT_VAT_RATE}%`
+              : `Fixed VAT rate for Jordan: ${JORDAN_DEFAULT_VAT_RATE}%`
+            }
           </p>
         </div>
 
