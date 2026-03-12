@@ -31,25 +31,15 @@ export default function SettingsPage() {
       toast.error(t("storeNameRequired"));
       return;
     }
-    if (settings.vatRate < 0 || settings.vatRate > 100) {
-      toast.error(t("vatRangeError"));
-      return;
-    }
 
-    const previous = getStoreSettings();
-    const vatChanged = previous.vatRate !== settings.vatRate;
-
+    // VAT is fixed at Jordan default, cannot be changed
     saveStoreSettings({
       storeName: settings.storeName,
       storeLogo: settings.storeLogo,
-      vatRate: settings.vatRate,
+      vatRate: JORDAN_DEFAULT_VAT_RATE,
     });
 
     toast.success(t("settingsSaved"));
-
-    if (vatChanged) {
-      toast.info(t("vatUpdatedMerchantNotice"));
-    }
   };
 
   return (
