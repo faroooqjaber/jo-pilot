@@ -1,16 +1,28 @@
 import { useState, useRef } from "react";
 import { getStoreSettings, saveStoreSettings, JOD_CURRENCY, JORDAN_DEFAULT_VAT_RATE } from "@/lib/store-settings";
 import { useI18n } from "@/lib/i18n";
+import { useAuth } from "@/hooks/useAuth";
+import { useCompany } from "@/hooks/useCompany";
+import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { ShoppingCart, Upload, Trash2, Save, Globe } from "lucide-react";
+import { ShoppingCart, Upload, Trash2, Save, Globe, AlertTriangle, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 
 export default function SettingsPage() {
   const { t, lang, setLang, dir } = useI18n();
+  const { signOut } = useAuth();
+  const { membership, refresh } = useCompany();
+  const isAr = lang === "ar";
+
   const [settings, setSettings] = useState(getStoreSettings);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [deleteLoading, setDeleteLoading] = useState(false);
+  const [deleteConfirmText, setDeleteConfirmText] = useState("");
   const fileRef = useRef<HTMLInputElement>(null);
+
+  const isOwner = membership?.role === "owner";
 
   const handleLogoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -31,22 +43,40 @@ export default function SettingsPage() {
       toast.error(t("storeNameRequired"));
       return;
     }
-
-    // VAT is fixed at Jordan default, cannot be changed
     saveStoreSettings({
       storeName: settings.storeName,
       storeLogo: settings.storeLogo,
       vatRate: JORDAN_DEFAULT_VAT_RATE,
     });
-
     toast.success(t("settingsSaved"));
   };
 
-  return (
-    <div className="p-6 max-w-xl mx-auto" dir={dir}>
-      <h1 className="text-2xl font-bold text-foreground mb-6">{t("storeSettings")}</h1>
+  const handleDeleteCompany = async () => {
+    if (!membership || deleteConfirmText !== membership.companyName) {
+      toast.error(isAr ? "اكتب اسم الشركة للتأكيد" : "Type the company name to confirm");
+      return;
+    }
+    setDeleteLoading(true);
+    const { error } = await supabase
+      .from("companies")
+      .delete()
+      .eq("id", membership.companyId);
 
-      <div className="bg-card border border-border rounded-xl p-6 space-y-6">
+    setDeleteLoading(false);
+    if (error) {
+      toast.error(isAr ? "فشل حذف الشركة" : "Failed to delete company");
+    } else {
+      toast.success(isAr ? "تم حذف الشركة" : "Company deleted");
+      await refresh();
+      signOut();
+    }
+  };
+
+  return (
+    <div className="p-6 max-w-xl mx-auto space-y-6" dir={dir}>
+      <h1 className="text-2xl font-bold text-foreground">{t("storeSettings")}</h1>
+
+      <div className="bg-card border border-border rounded-2xl p-6 space-y-6">
         {/* Language */}
         <div className="space-y-2">
           <Label className="text-sm font-semibold flex items-center gap-2">
@@ -54,20 +84,10 @@ export default function SettingsPage() {
             {t("language")}
           </Label>
           <div className="flex gap-2">
-            <Button
-              variant={lang === "ar" ? "default" : "outline"}
-              size="sm"
-              onClick={() => setLang("ar")}
-              className="flex-1"
-            >
+            <Button variant={lang === "ar" ? "default" : "outline"} size="sm" onClick={() => setLang("ar")} className="flex-1">
               {t("arabic")}
             </Button>
-            <Button
-              variant={lang === "en" ? "default" : "outline"}
-              size="sm"
-              onClick={() => setLang("en")}
-              className="flex-1"
-            >
+            <Button variant={lang === "en" ? "default" : "outline"} size="sm" onClick={() => setLang("en")} className="flex-1">
               {t("english")}
             </Button>
           </div>
@@ -81,7 +101,6 @@ export default function SettingsPage() {
             value={settings.storeName}
             onChange={e => setSettings(prev => ({ ...prev, storeName: e.target.value }))}
             placeholder={t("storeNamePlaceholder")}
-            className="text-base"
           />
         </div>
 
@@ -118,29 +137,21 @@ export default function SettingsPage() {
           <p className="text-xs text-muted-foreground">{t("logoHint")}</p>
         </div>
 
-        {/* Fixed Currency */}
+        {/* Currency */}
         <div className="space-y-2">
           <Label className="text-sm font-semibold">{t("currency")}</Label>
-          <div className="text-base border border-border rounded-lg bg-muted px-3 py-2 text-foreground">
+          <div className="border border-border rounded-lg bg-muted px-3 py-2 text-foreground">
             {t("jordanianDinar")} - {JOD_CURRENCY.symbol}
           </div>
         </div>
 
-        {/* VAT Rate - Fixed at 16% */}
+        {/* VAT */}
         <div className="space-y-2">
           <Label className="text-sm font-semibold">{t("vatRate")}</Label>
-          <div className="text-base border border-border rounded-lg bg-muted px-3 py-2 text-foreground flex items-center justify-between">
+          <div className="border border-border rounded-lg bg-muted px-3 py-2 text-foreground flex items-center justify-between">
             <span>{JORDAN_DEFAULT_VAT_RATE}%</span>
-            <span className="text-xs text-muted-foreground">
-              {lang === "ar" ? "ثابت (الأردن)" : "Fixed (Jordan)"}
-            </span>
+            <span className="text-xs text-muted-foreground">{isAr ? "ثابت (الأردن)" : "Fixed (Jordan)"}</span>
           </div>
-          <p className="text-xs text-muted-foreground">
-            {lang === "ar" 
-              ? `نسبة الضريبة ثابتة في الأردن ${JORDAN_DEFAULT_VAT_RATE}%`
-              : `Fixed VAT rate for Jordan: ${JORDAN_DEFAULT_VAT_RATE}%`
-            }
-          </p>
         </div>
 
         <Button onClick={handleSave} className="w-full touch-target gap-2" size="lg">
@@ -148,6 +159,60 @@ export default function SettingsPage() {
           {t("saveSettings")}
         </Button>
       </div>
+
+      {/* Danger Zone - Delete Company (Owner Only) */}
+      {isOwner && (
+        <div className="bg-card border-2 border-destructive/30 rounded-2xl p-6 space-y-4">
+          <h2 className="text-lg font-bold text-destructive flex items-center gap-2">
+            <AlertTriangle className="w-5 h-5" />
+            {isAr ? "منطقة الخطر" : "Danger Zone"}
+          </h2>
+          <p className="text-sm text-muted-foreground">
+            {isAr
+              ? "حذف الشركة سيؤدي إلى إزالة جميع البيانات والأعضاء بشكل نهائي."
+              : "Deleting the company will permanently remove all data and members."}
+          </p>
+
+          {!showDeleteConfirm ? (
+            <Button
+              variant="destructive"
+              onClick={() => setShowDeleteConfirm(true)}
+              className="gap-2"
+            >
+              <Trash2 className="w-4 h-4" />
+              {isAr ? "حذف الشركة" : "Delete Company"}
+            </Button>
+          ) : (
+            <div className="space-y-3 p-4 bg-destructive/5 rounded-lg border border-destructive/20">
+              <p className="text-sm font-semibold text-destructive">
+                {isAr
+                  ? `اكتب "${membership?.companyName}" للتأكيد`
+                  : `Type "${membership?.companyName}" to confirm`}
+              </p>
+              <Input
+                value={deleteConfirmText}
+                onChange={e => setDeleteConfirmText(e.target.value)}
+                placeholder={membership?.companyName}
+                className="border-destructive/30"
+              />
+              <div className="flex gap-2">
+                <Button
+                  variant="destructive"
+                  onClick={handleDeleteCompany}
+                  disabled={deleteLoading || deleteConfirmText !== membership?.companyName}
+                  className="gap-2"
+                >
+                  {deleteLoading && <Loader2 className="w-4 h-4 animate-spin" />}
+                  {isAr ? "تأكيد الحذف" : "Confirm Delete"}
+                </Button>
+                <Button variant="outline" onClick={() => { setShowDeleteConfirm(false); setDeleteConfirmText(""); }}>
+                  {isAr ? "إلغاء" : "Cancel"}
+                </Button>
+              </div>
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 }
