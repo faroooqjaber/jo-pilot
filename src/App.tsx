@@ -13,6 +13,7 @@ import DashboardPage from "@/pages/DashboardPage";
 import ReportsPage from "@/pages/ReportsPage";
 import SettingsPage from "@/pages/SettingsPage";
 import ManageRequestsPage from "@/pages/ManageRequestsPage";
+import ProfilePage from "@/pages/ProfilePage";
 import AuthPage from "@/pages/AuthPage";
 import ResetPasswordPage from "@/pages/ResetPasswordPage";
 import OnboardingPage from "@/pages/OnboardingPage";
@@ -33,7 +34,6 @@ function AppRoutes() {
     );
   }
 
-  // Not logged in
   if (!user) {
     return (
       <Routes>
@@ -44,7 +44,6 @@ function AppRoutes() {
     );
   }
 
-  // Logged in but no company
   if (!membership) {
     return (
       <Routes>
@@ -57,14 +56,11 @@ function AppRoutes() {
 
   const role = membership.role;
 
-  // Role-based route access
-  // owner/manager: everything
-  // supervisor: POS, products, dashboard, reports
-  // cashier: POS only
   return (
     <POSLayout>
       <Routes>
         <Route path="/" element={<POSPage />} />
+        <Route path="/profile" element={<ProfilePage />} />
 
         {(role === "owner" || role === "manager" || role === "supervisor") && (
           <>
