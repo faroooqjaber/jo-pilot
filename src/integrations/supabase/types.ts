@@ -155,6 +155,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      get_email_by_username: { Args: { _username: string }; Returns: string }
       get_member_role: {
         Args: { _company_id: string; _user_id: string }
         Returns: Database["public"]["Enums"]["app_role"]
