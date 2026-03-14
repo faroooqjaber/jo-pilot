@@ -27,27 +27,15 @@ export default function SettingsPage() {
   const handleLogoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    if (file.size > 2 * 1024 * 1024) {
-      toast.error(t("imageTooLarge"));
-      return;
-    }
+    if (file.size > 2 * 1024 * 1024) { toast.error(t("imageTooLarge")); return; }
     const reader = new FileReader();
-    reader.onload = () => {
-      setSettings(prev => ({ ...prev, storeLogo: reader.result as string }));
-    };
+    reader.onload = () => setSettings(prev => ({ ...prev, storeLogo: reader.result as string }));
     reader.readAsDataURL(file);
   };
 
   const handleSave = () => {
-    if (!settings.storeName.trim()) {
-      toast.error(t("storeNameRequired"));
-      return;
-    }
-    saveStoreSettings({
-      storeName: settings.storeName,
-      storeLogo: settings.storeLogo,
-      vatRate: JORDAN_DEFAULT_VAT_RATE,
-    });
+    if (!settings.storeName.trim()) { toast.error(t("storeNameRequired")); return; }
+    saveStoreSettings({ storeName: settings.storeName, storeLogo: settings.storeLogo, vatRate: JORDAN_DEFAULT_VAT_RATE });
     toast.success(t("settingsSaved"));
   };
 
@@ -57,157 +45,85 @@ export default function SettingsPage() {
       return;
     }
     setDeleteLoading(true);
-    const { error } = await supabase
-      .from("companies")
-      .delete()
-      .eq("id", membership.companyId);
-
+    const { error } = await supabase.from("companies").delete().eq("id", membership.companyId);
     setDeleteLoading(false);
-    if (error) {
-      toast.error(isAr ? "فشل حذف الشركة" : "Failed to delete company");
-    } else {
-      toast.success(isAr ? "تم حذف الشركة" : "Company deleted");
-      await refresh();
-      signOut();
-    }
+    if (error) toast.error(isAr ? "فشل حذف الشركة" : "Failed to delete company");
+    else { toast.success(isAr ? "تم حذف الشركة" : "Company deleted"); await refresh(); signOut(); }
   };
 
   return (
-    <div className="p-6 max-w-xl mx-auto space-y-6" dir={dir}>
-      <h1 className="text-2xl font-bold text-foreground">{t("storeSettings")}</h1>
+    <div className="p-5 lg:p-8 max-w-xl mx-auto space-y-6" dir={dir}>
+      <h1 className="text-2xl font-bold text-foreground tracking-tight">{t("storeSettings")}</h1>
 
-      <div className="bg-card border border-border rounded-2xl p-6 space-y-6">
+      <div className="bg-card border border-border rounded-2xl p-6 space-y-6 pos-shadow">
         {/* Language */}
         <div className="space-y-2">
-          <Label className="text-sm font-semibold flex items-center gap-2">
-            <Globe className="w-4 h-4" />
-            {t("language")}
-          </Label>
+          <Label className="text-sm font-semibold flex items-center gap-2"><Globe className="w-4 h-4 text-muted-foreground" />{t("language")}</Label>
           <div className="flex gap-2">
-            <Button variant={lang === "ar" ? "default" : "outline"} size="sm" onClick={() => setLang("ar")} className="flex-1">
-              {t("arabic")}
-            </Button>
-            <Button variant={lang === "en" ? "default" : "outline"} size="sm" onClick={() => setLang("en")} className="flex-1">
-              {t("english")}
-            </Button>
+            <Button variant={lang === "ar" ? "default" : "outline"} size="sm" onClick={() => setLang("ar")} className="flex-1 h-9">{t("arabic")}</Button>
+            <Button variant={lang === "en" ? "default" : "outline"} size="sm" onClick={() => setLang("en")} className="flex-1 h-9">{t("english")}</Button>
           </div>
         </div>
 
         {/* Store Name */}
         <div className="space-y-2">
           <Label htmlFor="storeName" className="text-sm font-semibold">{t("storeNameLabel")}</Label>
-          <Input
-            id="storeName"
-            value={settings.storeName}
-            onChange={e => setSettings(prev => ({ ...prev, storeName: e.target.value }))}
-            placeholder={t("storeNamePlaceholder")}
-          />
+          <Input id="storeName" value={settings.storeName} onChange={e => setSettings(prev => ({ ...prev, storeName: e.target.value }))} placeholder={t("storeNamePlaceholder")} className="h-11" />
         </div>
 
         {/* Store Logo */}
         <div className="space-y-2">
           <Label className="text-sm font-semibold">{t("storeLogo")}</Label>
           <div className="flex items-center gap-4">
-            <div className="w-20 h-20 rounded-xl border border-border bg-muted flex items-center justify-center overflow-hidden shrink-0">
-              {settings.storeLogo ? (
-                <img src={settings.storeLogo} alt={t("storeLogo")} className="w-full h-full object-cover" />
-              ) : (
-                <ShoppingCart className="w-8 h-8 text-muted-foreground" />
-              )}
+            <div className="w-16 h-16 rounded-xl border border-border bg-muted flex items-center justify-center overflow-hidden shrink-0">
+              {settings.storeLogo ? <img src={settings.storeLogo} alt={t("storeLogo")} className="w-full h-full object-cover" /> : <ShoppingCart className="w-6 h-6 text-muted-foreground" />}
             </div>
             <div className="flex flex-col gap-2">
-              <Button variant="outline" size="sm" onClick={() => fileRef.current?.click()} className="gap-2">
-                <Upload className="w-4 h-4" />
-                {t("uploadImage")}
-              </Button>
+              <Button variant="outline" size="sm" onClick={() => fileRef.current?.click()} className="gap-2 h-8"><Upload className="w-3.5 h-3.5" />{t("uploadImage")}</Button>
               {settings.storeLogo && (
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setSettings(prev => ({ ...prev, storeLogo: null }))}
-                  className="gap-2 text-destructive hover:text-destructive"
-                >
-                  <Trash2 className="w-4 h-4" />
-                  {t("removeLogo")}
-                </Button>
+                <Button variant="outline" size="sm" onClick={() => setSettings(prev => ({ ...prev, storeLogo: null }))} className="gap-2 h-8 text-destructive hover:text-destructive"><Trash2 className="w-3.5 h-3.5" />{t("removeLogo")}</Button>
               )}
             </div>
           </div>
           <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={handleLogoUpload} />
-          <p className="text-xs text-muted-foreground">{t("logoHint")}</p>
+          <p className="text-[11px] text-muted-foreground">{t("logoHint")}</p>
         </div>
 
         {/* Currency */}
         <div className="space-y-2">
           <Label className="text-sm font-semibold">{t("currency")}</Label>
-          <div className="border border-border rounded-lg bg-muted px-3 py-2 text-foreground">
-            {t("jordanianDinar")} - {JOD_CURRENCY.symbol}
-          </div>
+          <div className="border border-border rounded-lg bg-muted px-3 py-2.5 text-sm text-foreground">{t("jordanianDinar")} - {JOD_CURRENCY.symbol}</div>
         </div>
 
         {/* VAT */}
         <div className="space-y-2">
           <Label className="text-sm font-semibold">{t("vatRate")}</Label>
-          <div className="border border-border rounded-lg bg-muted px-3 py-2 text-foreground flex items-center justify-between">
+          <div className="border border-border rounded-lg bg-muted px-3 py-2.5 text-sm text-foreground flex items-center justify-between">
             <span>{JORDAN_DEFAULT_VAT_RATE}%</span>
-            <span className="text-xs text-muted-foreground">{isAr ? "ثابت (الأردن)" : "Fixed (Jordan)"}</span>
+            <span className="text-[11px] text-muted-foreground">{isAr ? "ثابت (الأردن)" : "Fixed (Jordan)"}</span>
           </div>
         </div>
 
-        <Button onClick={handleSave} className="w-full touch-target gap-2" size="lg">
-          <Save className="w-5 h-5" />
-          {t("saveSettings")}
-        </Button>
+        <Button onClick={handleSave} className="w-full h-11 gap-2 font-semibold"><Save className="w-4 h-4" />{t("saveSettings")}</Button>
       </div>
 
-      {/* Danger Zone - Delete Company (Owner Only) */}
+      {/* Danger Zone */}
       {isOwner && (
-        <div className="bg-card border-2 border-destructive/30 rounded-2xl p-6 space-y-4">
-          <h2 className="text-lg font-bold text-destructive flex items-center gap-2">
-            <AlertTriangle className="w-5 h-5" />
-            {isAr ? "منطقة الخطر" : "Danger Zone"}
-          </h2>
-          <p className="text-sm text-muted-foreground">
-            {isAr
-              ? "حذف الشركة سيؤدي إلى إزالة جميع البيانات والأعضاء بشكل نهائي."
-              : "Deleting the company will permanently remove all data and members."}
-          </p>
+        <div className="bg-card border-2 border-destructive/20 rounded-2xl p-6 space-y-4">
+          <h2 className="text-base font-bold text-destructive flex items-center gap-2"><AlertTriangle className="w-5 h-5" />{isAr ? "منطقة الخطر" : "Danger Zone"}</h2>
+          <p className="text-sm text-muted-foreground">{isAr ? "حذف الشركة سيؤدي إلى إزالة جميع البيانات والأعضاء بشكل نهائي." : "Deleting the company will permanently remove all data and members."}</p>
 
           {!showDeleteConfirm ? (
-            <Button
-              variant="destructive"
-              onClick={() => setShowDeleteConfirm(true)}
-              className="gap-2"
-            >
-              <Trash2 className="w-4 h-4" />
-              {isAr ? "حذف الشركة" : "Delete Company"}
-            </Button>
+            <Button variant="destructive" onClick={() => setShowDeleteConfirm(true)} className="gap-2 h-9"><Trash2 className="w-4 h-4" />{isAr ? "حذف الشركة" : "Delete Company"}</Button>
           ) : (
-            <div className="space-y-3 p-4 bg-destructive/5 rounded-lg border border-destructive/20">
-              <p className="text-sm font-semibold text-destructive">
-                {isAr
-                  ? `اكتب "${membership?.companyName}" للتأكيد`
-                  : `Type "${membership?.companyName}" to confirm`}
-              </p>
-              <Input
-                value={deleteConfirmText}
-                onChange={e => setDeleteConfirmText(e.target.value)}
-                placeholder={membership?.companyName}
-                className="border-destructive/30"
-              />
+            <div className="space-y-3 p-4 bg-destructive/5 rounded-xl border border-destructive/15">
+              <p className="text-sm font-semibold text-destructive">{isAr ? `اكتب "${membership?.companyName}" للتأكيد` : `Type "${membership?.companyName}" to confirm`}</p>
+              <Input value={deleteConfirmText} onChange={e => setDeleteConfirmText(e.target.value)} placeholder={membership?.companyName} className="border-destructive/20 h-10" />
               <div className="flex gap-2">
-                <Button
-                  variant="destructive"
-                  onClick={handleDeleteCompany}
-                  disabled={deleteLoading || deleteConfirmText !== membership?.companyName}
-                  className="gap-2"
-                >
-                  {deleteLoading && <Loader2 className="w-4 h-4 animate-spin" />}
-                  {isAr ? "تأكيد الحذف" : "Confirm Delete"}
+                <Button variant="destructive" onClick={handleDeleteCompany} disabled={deleteLoading || deleteConfirmText !== membership?.companyName} className="gap-2 h-9">
+                  {deleteLoading && <Loader2 className="w-4 h-4 animate-spin" />}{isAr ? "تأكيد الحذف" : "Confirm Delete"}
                 </Button>
-                <Button variant="outline" onClick={() => { setShowDeleteConfirm(false); setDeleteConfirmText(""); }}>
-                  {isAr ? "إلغاء" : "Cancel"}
-                </Button>
+                <Button variant="outline" onClick={() => { setShowDeleteConfirm(false); setDeleteConfirmText(""); }} className="h-9">{isAr ? "إلغاء" : "Cancel"}</Button>
               </div>
             </div>
           )}

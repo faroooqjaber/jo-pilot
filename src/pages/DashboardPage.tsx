@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { getTodayStats, getLowStockProducts, getTransactions, Product, Transaction } from "@/lib/store";
 import { JOD_CURRENCY } from "@/lib/store-settings";
 import { useI18n } from "@/lib/i18n";
-import { DollarSign, ShoppingBag, AlertTriangle, TrendingUp } from "lucide-react";
+import { DollarSign, ShoppingBag, AlertTriangle, TrendingUp, ArrowUpRight } from "lucide-react";
 import { format } from "date-fns";
 import { ar, enUS } from "date-fns/locale";
 
@@ -22,81 +22,90 @@ export default function DashboardPage() {
     setRecentTransactions(getTransactions().slice(-10).reverse());
   }, []);
 
-  return (
-    <div className="p-6 space-y-6">
-      <h1 className="text-2xl font-bold text-foreground">{t("dashboard")}</h1>
+  const statCards = [
+    { icon: <DollarSign className="w-5 h-5" />, label: t("todayTotalSales"), value: fmt(stats.totalSales), gradient: "from-primary to-primary-glow", iconBg: "bg-primary/10 text-primary" },
+    { icon: <ShoppingBag className="w-5 h-5" />, label: t("todaySalesOps"), value: stats.totalTransactions.toString(), gradient: "from-accent to-accent", iconBg: "bg-accent/10 text-accent" },
+    { icon: <AlertTriangle className="w-5 h-5" />, label: t("lowStockProducts"), value: lowStock.length.toString(), gradient: "from-destructive to-destructive", iconBg: "bg-destructive/10 text-destructive" },
+  ];
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-        <StatCard icon={<DollarSign className="w-6 h-6" />} label={t("todayTotalSales")} value={fmt(stats.totalSales)} color="primary" />
-        <StatCard icon={<ShoppingBag className="w-6 h-6" />} label={t("todaySalesOps")} value={stats.totalTransactions.toString()} color="accent" />
-        <StatCard icon={<AlertTriangle className="w-6 h-6" />} label={t("lowStockProducts")} value={lowStock.length.toString()} color="destructive" />
+  return (
+    <div className="p-5 lg:p-8 space-y-6 max-w-7xl mx-auto">
+      <div className="flex items-center justify-between">
+        <h1 className="text-2xl font-bold text-foreground tracking-tight">{t("dashboard")}</h1>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div className="bg-card border border-border rounded-xl p-5 pos-shadow">
-          <h2 className="font-bold text-foreground mb-4 flex items-center gap-2">
-            <AlertTriangle className="w-5 h-5 text-warning" />
+      {/* Stats */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        {statCards.map((card, i) => (
+          <div key={i} className="group bg-card border border-border rounded-2xl p-5 pos-shadow hover:pos-shadow-hover transition-all duration-300 animate-fade-in">
+            <div className="flex items-start justify-between">
+              <div className={`w-11 h-11 rounded-xl flex items-center justify-center ${card.iconBg} transition-transform group-hover:scale-105`}>
+                {card.icon}
+              </div>
+              <ArrowUpRight className="w-4 h-4 text-muted-foreground/50" />
+            </div>
+            <div className="mt-4">
+              <p className="text-sm text-muted-foreground font-medium">{card.label}</p>
+              <p className="text-2xl font-bold text-foreground mt-0.5 tracking-tight">{card.value}</p>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
+        {/* Stock Alerts */}
+        <div className="bg-card border border-border rounded-2xl p-5 pos-shadow">
+          <h2 className="font-bold text-foreground mb-4 flex items-center gap-2 text-[15px]">
+            <div className="w-8 h-8 rounded-lg bg-warning/10 flex items-center justify-center">
+              <AlertTriangle className="w-4 h-4 text-warning" />
+            </div>
             {t("stockAlerts")}
           </h2>
           {lowStock.length === 0 ? (
-            <p className="text-muted-foreground text-sm">{t("allStocked")}</p>
+            <div className="text-center py-8">
+              <p className="text-muted-foreground text-sm">{t("allStocked")}</p>
+            </div>
           ) : (
-            <div className="space-y-2">
+            <div className="space-y-1">
               {lowStock.map(p => (
-                <div key={p.id} className="flex justify-between items-center py-2 border-b border-border/50 last:border-0">
-                  <span className={`font-semibold text-sm ${p.stock <= 0 ? "text-danger" : "text-warning"}`}>
+                <div key={p.id} className="flex justify-between items-center py-2.5 px-3 rounded-lg hover:bg-muted/50 transition-colors">
+                  <span className="text-sm font-medium text-foreground">{p.name}</span>
+                  <span className={`text-xs font-semibold px-2.5 py-1 rounded-full ${p.stock <= 0 ? "bg-destructive/10 text-destructive" : "bg-warning/10 text-warning"}`}>
                     {p.stock <= 0 ? t("depleted") : `${t("remaining")} ${p.stock}`}
                   </span>
-                  <span className="text-sm text-foreground">{p.name}</span>
                 </div>
               ))}
             </div>
           )}
         </div>
 
-        <div className="bg-card border border-border rounded-xl p-5 pos-shadow">
-          <h2 className="font-bold text-foreground mb-4 flex items-center gap-2">
-            <TrendingUp className="w-5 h-5 text-primary" />
+        {/* Recent Transactions */}
+        <div className="bg-card border border-border rounded-2xl p-5 pos-shadow">
+          <h2 className="font-bold text-foreground mb-4 flex items-center gap-2 text-[15px]">
+            <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
+              <TrendingUp className="w-4 h-4 text-primary" />
+            </div>
             {t("recentTransactions")}
           </h2>
           {recentTransactions.length === 0 ? (
-            <p className="text-muted-foreground text-sm">{t("noTransactionsYet")}</p>
+            <div className="text-center py-8">
+              <p className="text-muted-foreground text-sm">{t("noTransactionsYet")}</p>
+            </div>
           ) : (
-            <div className="space-y-2">
+            <div className="space-y-1">
               {recentTransactions.map(tx => (
-                <div key={tx.id} className="flex justify-between items-center py-2 border-b border-border/50 last:border-0">
-                  <span className="font-bold text-sm text-primary">{fmt(tx.total)}</span>
-                  <div className="text-right">
-                    <span className="text-sm text-foreground">{tx.items.length} {t("items")}</span>
-                    <p className="text-xs text-muted-foreground">
+                <div key={tx.id} className="flex justify-between items-center py-2.5 px-3 rounded-lg hover:bg-muted/50 transition-colors">
+                  <div>
+                    <span className="text-sm font-medium text-foreground">{tx.items.length} {t("items")}</span>
+                    <p className="text-xs text-muted-foreground mt-0.5">
                       {format(new Date(tx.date), "HH:mm - yyyy/MM/dd", { locale })}
                     </p>
                   </div>
+                  <span className="font-bold text-sm text-primary">{fmt(tx.total)}</span>
                 </div>
               ))}
             </div>
           )}
-        </div>
-      </div>
-    </div>
-  );
-}
-
-function StatCard({ icon, label, value, color }: { icon: React.ReactNode; label: string; value: string; color: string }) {
-  const colorMap: Record<string, string> = {
-    primary: "bg-primary/10 text-primary",
-    accent: "bg-accent/10 text-accent",
-    destructive: "bg-destructive/10 text-danger",
-  };
-  return (
-    <div className="bg-card border border-border rounded-xl p-5 pos-shadow animate-fade-in">
-      <div className="flex items-center gap-3">
-        <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${colorMap[color] || ""}`}>
-          {icon}
-        </div>
-        <div>
-          <p className="text-sm text-muted-foreground">{label}</p>
-          <p className="text-xl font-bold text-foreground">{value}</p>
         </div>
       </div>
     </div>
