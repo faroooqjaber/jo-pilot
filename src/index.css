@@ -187,3 +187,9 @@
     font-size: 12px;
   }
 }
+
+@layer base {
+  * {
+    @apply break-words; /* هذا يمنع النص من الخروج عن الحدود */
+  }
+}
