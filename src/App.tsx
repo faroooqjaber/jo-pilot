@@ -16,7 +16,7 @@ import ManageRequestsPage from "@/pages/ManageRequestsPage";
 import ProfilePage from "@/pages/ProfilePage";
 import AuthPage from "@/pages/AuthPage";
 import ResetPasswordPage from "@/pages/ResetPasswordPage";
-import OnboardingPage from "@/pages/OnboardingPage";
+import CreateCompany from "@/pages/CreateCompany"; // الصفحة الجديدة اللي عملناها
 import NotFound from "./pages/NotFound";
 import { Loader2 } from "lucide-react";
 
@@ -28,12 +28,16 @@ function AppRoutes() {
 
   if (authLoading || (user && companyLoading)) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-background">
-        <Loader2 className="w-8 h-8 animate-spin text-primary" />
+      <div className="min-h-screen flex items-center justify-center bg-background text-primary">
+        <div className="text-center">
+          <Loader2 className="w-12 h-12 animate-spin mx-auto mb-4" />
+          <h1 className="text-xl font-bold">Jo Pilot</h1>
+        </div>
       </div>
     );
   }
 
+  // إذا مش مسجل دخول
   if (!user) {
     return (
       <Routes>
@@ -44,12 +48,13 @@ function AppRoutes() {
     );
   }
 
+  // حل مشكلة حذف الشركة: إذا مسجل دخول بس ما عنده شركة (بدل ما يطلعه برا الحساب)
   if (!membership) {
     return (
       <Routes>
-        <Route path="/onboarding" element={<OnboardingPage />} />
+        <Route path="/create-company" element={<CreateCompany />} />
         <Route path="/reset-password" element={<ResetPasswordPage />} />
-        <Route path="*" element={<Navigate to="/onboarding" replace />} />
+        <Route path="*" element={<Navigate to="/create-company" replace />} />
       </Routes>
     );
   }
@@ -77,8 +82,9 @@ function AppRoutes() {
           </>
         )}
 
+        {/* إعادة توجيه إذا حاول يدخل صفحات التوثيق وهو مسجل */}
         <Route path="/auth" element={<Navigate to="/" replace />} />
-        <Route path="/onboarding" element={<Navigate to="/" replace />} />
+        <Route path="/create-company" element={<Navigate to="/" replace />} />
         <Route path="*" element={<NotFound />} />
       </Routes>
     </POSLayout>
