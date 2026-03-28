@@ -16,7 +16,7 @@ import ManageRequestsPage from "@/pages/ManageRequestsPage";
 import ProfilePage from "@/pages/ProfilePage";
 import AuthPage from "@/pages/AuthPage";
 import ResetPasswordPage from "@/pages/ResetPasswordPage";
-import CreateCompany from "@/pages/CreateCompany"; // الصفحة الجديدة اللي عملناها
+import CreateCompany from "@/pages/CreateCompany"; 
 import NotFound from "./pages/NotFound";
 import { Loader2 } from "lucide-react";
 
@@ -37,7 +37,6 @@ function AppRoutes() {
     );
   }
 
-  // إذا مش مسجل دخول
   if (!user) {
     return (
       <Routes>
@@ -48,7 +47,6 @@ function AppRoutes() {
     );
   }
 
-  // حل مشكلة حذف الشركة: إذا مسجل دخول بس ما عنده شركة (بدل ما يطلعه برا الحساب)
   if (!membership) {
     return (
       <Routes>
@@ -82,7 +80,6 @@ function AppRoutes() {
           </>
         )}
 
-        {/* إعادة توجيه إذا حاول يدخل صفحات التوثيق وهو مسجل */}
         <Route path="/auth" element={<Navigate to="/" replace />} />
         <Route path="/create-company" element={<Navigate to="/" replace />} />
         <Route path="*" element={<NotFound />} />
