@@ -16,7 +16,6 @@ import ManageRequestsPage from "@/pages/ManageRequestsPage";
 import ProfilePage from "@/pages/ProfilePage";
 import AuthPage from "@/pages/AuthPage";
 import ResetPasswordPage from "@/pages/ResetPasswordPage";
-import CreateCompany from "@/pages/CreateCompany"; 
 import NotFound from "./pages/NotFound";
 import { Loader2 } from "lucide-react";
 
@@ -47,12 +46,12 @@ function AppRoutes() {
     );
   }
 
+  // تم تعديل هذا الجزء لتجاوز صفحة إنشاء الشركة المفقودة
   if (!membership) {
     return (
       <Routes>
-        <Route path="/create-company" element={<CreateCompany />} />
         <Route path="/reset-password" element={<ResetPasswordPage />} />
-        <Route path="*" element={<Navigate to="/create-company" replace />} />
+        <Route path="*" element={<div className="p-8 text-center">برجاء إنشاء شركة من خلال قاعدة البيانات أولاً أو رفع ملف صفحة الشركة.</div>} />
       </Routes>
     );
   }
@@ -81,7 +80,6 @@ function AppRoutes() {
         )}
 
         <Route path="/auth" element={<Navigate to="/" replace />} />
-        <Route path="/create-company" element={<Navigate to="/" replace />} />
         <Route path="*" element={<NotFound />} />
       </Routes>
     </POSLayout>
