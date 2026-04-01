@@ -46,12 +46,11 @@ function AppRoutes() {
     );
   }
 
-  // تم تعديل هذا الجزء لتجاوز صفحة إنشاء الشركة المفقودة
   if (!membership) {
     return (
       <Routes>
         <Route path="/reset-password" element={<ResetPasswordPage />} />
-        <Route path="*" element={<div className="p-8 text-center">برجاء إنشاء شركة من خلال قاعدة البيانات أولاً أو رفع ملف صفحة الشركة.</div>} />
+        <Route path="*" element={<OnboardingPage />} />
       </Routes>
     );
   }
