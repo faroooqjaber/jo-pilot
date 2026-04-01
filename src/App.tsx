@@ -17,6 +17,7 @@ import ProfilePage from "@/pages/ProfilePage";
 import AuthPage from "@/pages/AuthPage";
 import ResetPasswordPage from "@/pages/ResetPasswordPage";
 import NotFound from "./pages/NotFound";
+import OnboardingPage from "./pages/OnboardingPage";
 import { Loader2 } from "lucide-react";
 
 const queryClient = new QueryClient();
@@ -46,12 +47,11 @@ function AppRoutes() {
     );
   }
 
-  // تم تعديل هذا الجزء لتجاوز صفحة إنشاء الشركة المفقودة
   if (!membership) {
     return (
       <Routes>
         <Route path="/reset-password" element={<ResetPasswordPage />} />
-        <Route path="*" element={<div className="p-8 text-center">برجاء إنشاء شركة من خلال قاعدة البيانات أولاً أو رفع ملف صفحة الشركة.</div>} />
+        <Route path="*" element={<OnboardingPage />} />
       </Routes>
     );
   }
