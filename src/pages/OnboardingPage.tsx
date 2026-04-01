@@ -6,13 +6,21 @@ import { useI18n } from "@/lib/i18n";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Building2, Search, Loader2, Send, Plus, CheckCircle2, Clock, XCircle, ShoppingCart } from "lucide-react";
+import { Building2, Search, Loader2, Send, Plus, CheckCircle2, Clock, XCircle, Store } from "lucide-react";
 import { toast } from "sonner";
 import { z } from "zod";
 
 const companyNameSchema = z.string().trim().min(2).max(100);
 
 type Tab = "create" | "join";
+
+const companyTypes = [
+  { value: "retail", ar: "متجر تجزئة", en: "Retail Store" },
+  { value: "restaurant", ar: "مطعم", en: "Restaurant" },
+  { value: "services", ar: "خدمات", en: "Services" },
+  { value: "wholesale", ar: "جملة", en: "Wholesale" },
+  { value: "other", ar: "أخرى", en: "Other" },
+];
 
 export default function OnboardingPage() {
   const { lang, dir } = useI18n();
@@ -22,6 +30,7 @@ export default function OnboardingPage() {
 
   const [tab, setTab] = useState<Tab>("create");
   const [companyName, setCompanyName] = useState("");
+  const [companyType, setCompanyType] = useState("retail");
   const [searchQuery, setSearchQuery] = useState("");
   const [searchResults, setSearchResults] = useState<{ id: string; name: string }[]>([]);
   const [myRequests, setMyRequests] = useState<{ id: string; company_name: string; status: string }[]>([]);
@@ -30,19 +39,18 @@ export default function OnboardingPage() {
 
   const handleCreateCompany = async () => {
     const result = companyNameSchema.safeParse(companyName);
-    if (!result.success) { toast.error(isAr ? "اسم الشركة يجب أن يكون حرفين على الأقل" : "Company name must be at least 2 characters"); return; }
+    if (!result.success) { toast.error(isAr ? "اسم الشركة يجب أن يكون حرفين على الأقل" : "Min 2 characters"); return; }
     if (!user) return;
     setLoading(true);
-    const { error } = await supabase.from("companies").insert({ name: result.data, owner_id: user.id });
+    const { error } = await supabase.from("companies").insert({ name: result.data, owner_id: user.id, company_type: companyType });
     setLoading(false);
-    if (error) toast.error(isAr ? "فشل إنشاء الشركة" : "Failed to create company");
-    else { toast.success(isAr ? "تم إنشاء الشركة بنجاح!" : "Company created!"); await refresh(); }
+    if (error) toast.error(isAr ? "فشل إنشاء الشركة" : "Failed");
+    else { toast.success(isAr ? "تم إنشاء الشركة!" : "Company created!"); await refresh(); }
   };
 
   const handleSearch = async () => {
     if (searchQuery.trim().length < 2) return;
-    setLoading(true);
-    setSearched(true);
+    setLoading(true); setSearched(true);
     const { data } = await supabase.from("companies").select("id, name").ilike("name", `%${searchQuery.trim()}%`).limit(10);
     setSearchResults(data ?? []);
     if (user) {
@@ -58,9 +66,9 @@ export default function OnboardingPage() {
     const { error } = await supabase.from("join_requests").insert({ company_id: companyId, user_id: user.id, requested_role: "cashier" });
     setLoading(false);
     if (error) {
-      if (error.code === "23505") toast.error(isAr ? "لقد أرسلت طلبًا بالفعل" : "You already sent a request");
-      else toast.error(isAr ? "فشل إرسال الطلب" : "Failed to send request");
-    } else { toast.success(isAr ? "تم إرسال طلب الانضمام!" : "Join request sent!"); handleSearch(); }
+      if (error.code === "23505") toast.error(isAr ? "لقد أرسلت طلبًا بالفعل" : "Already sent");
+      else toast.error(isAr ? "فشل الإرسال" : "Failed");
+    } else { toast.success(isAr ? "تم إرسال الطلب!" : "Request sent!"); handleSearch(); }
   };
 
   return (
@@ -68,24 +76,21 @@ export default function OnboardingPage() {
       <div className="w-full max-w-lg">
         <div className="text-center mb-8">
           <div className="w-16 h-16 mx-auto mb-4 rounded-2xl gradient-primary flex items-center justify-center shadow-lg shadow-primary/25">
-            <ShoppingCart className="w-8 h-8 text-primary-foreground" />
+            <Store className="w-8 h-8 text-primary-foreground" />
           </div>
-          <h1 className="text-2xl font-bold text-foreground tracking-tight">{isAr ? "مرحبًا بك!" : "Welcome!"}</h1>
-          <p className="text-muted-foreground mt-1.5 text-sm">{isAr ? "أنشئ شركتك أو انضم لشركة موجودة" : "Create your company or join an existing one"}</p>
+          <h1 className="text-2xl font-bold text-foreground tracking-tight">JO Shops</h1>
+          <p className="text-muted-foreground mt-1.5 text-sm">{isAr ? "أنشئ متجرك أو انضم لمتجر موجود" : "Create or join a store"}</p>
         </div>
 
         <div className="bg-card border border-border rounded-2xl overflow-hidden pos-shadow">
           <div className="flex">
             {(["create", "join"] as Tab[]).map(t => (
-              <button
-                key={t}
-                onClick={() => setTab(t)}
+              <button key={t} onClick={() => setTab(t)}
                 className={`flex-1 py-3.5 px-4 text-sm font-semibold transition-all duration-200 flex items-center justify-center gap-1.5 ${
                   tab === t ? "text-primary border-b-2 border-primary bg-primary/5" : "text-muted-foreground hover:text-foreground border-b-2 border-transparent"
-                }`}
-              >
+                }`}>
                 {t === "create" ? <Plus className="w-4 h-4" /> : <Search className="w-4 h-4" />}
-                {t === "create" ? (isAr ? "إنشاء شركة" : "Create Company") : (isAr ? "انضم لشركة" : "Join Company")}
+                {t === "create" ? (isAr ? "إنشاء متجر" : "Create Store") : (isAr ? "البحث عن متجر" : "Find Store")}
               </button>
             ))}
           </div>
@@ -94,26 +99,39 @@ export default function OnboardingPage() {
             {tab === "create" ? (
               <>
                 <div className="space-y-2">
-                  <Label className="text-sm font-semibold">{isAr ? "اسم الشركة" : "Company Name"}</Label>
+                  <Label className="text-sm font-semibold">{isAr ? "اسم المتجر" : "Store Name"}</Label>
                   <Input value={companyName} onChange={e => setCompanyName(e.target.value)} placeholder={isAr ? "مثال: متجر السعادة" : "e.g. Happy Store"} maxLength={100} className="h-11" />
+                </div>
+                <div className="space-y-2">
+                  <Label className="text-sm font-semibold">{isAr ? "نوع النشاط" : "Business Type"}</Label>
+                  <div className="grid grid-cols-2 gap-2">
+                    {companyTypes.map(ct => (
+                      <button key={ct.value} onClick={() => setCompanyType(ct.value)}
+                        className={`px-3 py-2.5 rounded-xl text-xs font-semibold border transition-all ${
+                          companyType === ct.value ? "border-primary bg-primary/10 text-primary" : "border-border text-muted-foreground hover:border-primary/50"
+                        }`}>
+                        {isAr ? ct.ar : ct.en}
+                      </button>
+                    ))}
+                  </div>
                 </div>
                 <Button onClick={handleCreateCompany} className="w-full h-11 font-semibold" disabled={loading}>
                   {loading && <Loader2 className="w-4 h-4 animate-spin ltr:mr-2 rtl:ml-2" />}
-                  {isAr ? "إنشاء الشركة" : "Create Company"}
+                  {isAr ? "إنشاء المتجر" : "Create Store"}
                 </Button>
               </>
             ) : (
               <>
                 <div className="space-y-2">
-                  <Label className="text-sm font-semibold">{isAr ? "ابحث عن شركة" : "Search for a company"}</Label>
+                  <Label className="text-sm font-semibold">{isAr ? "ابحث عن متجر" : "Search for a store"}</Label>
                   <div className="flex gap-2">
-                    <Input value={searchQuery} onChange={e => setSearchQuery(e.target.value)} placeholder={isAr ? "اكتب اسم الشركة..." : "Type company name..."} onKeyDown={e => e.key === "Enter" && handleSearch()} maxLength={100} className="h-10" />
+                    <Input value={searchQuery} onChange={e => setSearchQuery(e.target.value)} placeholder={isAr ? "اكتب اسم المتجر..." : "Type store name..."} onKeyDown={e => e.key === "Enter" && handleSearch()} maxLength={100} className="h-10" />
                     <Button onClick={handleSearch} disabled={loading} variant="outline" className="h-10"><Search className="w-4 h-4" /></Button>
                   </div>
                 </div>
 
                 {searched && searchResults.length === 0 && (
-                  <p className="text-center text-muted-foreground text-sm py-6">{isAr ? "لا توجد نتائج" : "No results found"}</p>
+                  <p className="text-center text-muted-foreground text-sm py-6">{isAr ? "لا توجد نتائج" : "No results"}</p>
                 )}
 
                 {searchResults.length > 0 && (

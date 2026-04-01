@@ -16,6 +16,7 @@ export type Database = {
     Tables: {
       companies: {
         Row: {
+          company_type: string | null
           created_at: string
           id: string
           logo_url: string | null
@@ -24,6 +25,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          company_type?: string | null
           created_at?: string
           id?: string
           logo_url?: string | null
@@ -32,6 +34,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          company_type?: string | null
           created_at?: string
           id?: string
           logo_url?: string | null

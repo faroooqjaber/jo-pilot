@@ -69,14 +69,12 @@ function AppRoutes() {
             <Route path="/products" element={<ProductsPage />} />
             <Route path="/dashboard" element={<DashboardPage />} />
             <Route path="/reports" element={<ReportsPage />} />
+            <Route path="/team" element={<ManageRequestsPage />} />
           </>
         )}
 
         {(role === "owner" || role === "manager") && (
-          <>
-            <Route path="/settings" element={<SettingsPage />} />
-            <Route path="/team" element={<ManageRequestsPage />} />
-          </>
+          <Route path="/settings" element={<SettingsPage />} />
         )}
 
         <Route path="/auth" element={<Navigate to="/" replace />} />
