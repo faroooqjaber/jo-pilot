@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useCompany } from "@/hooks/useCompany";
@@ -6,7 +6,7 @@ import { useI18n } from "@/lib/i18n";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { ShoppingBasket, Loader2, Plus, CheckCircle2, Clock, XCircle, Hash } from "lucide-react";
+import { ShoppingBasket, Loader2, Plus, CheckCircle2, Clock, XCircle, Hash, RefreshCw } from "lucide-react";
 import { toast } from "sonner";
 import { z } from "zod";
 
@@ -34,6 +34,35 @@ export default function OnboardingPage() {
   const [joinCode, setJoinCode] = useState("");
   const [myRequests, setMyRequests] = useState<{ id: string; company_name: string; status: string }[]>([]);
   const [loading, setLoading] = useState(false);
+  const [checkingPending, setCheckingPending] = useState(true);
+  const [hasPending, setHasPending] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
+
+  const checkPendingRequests = useCallback(async () => {
+    if (!user) return;
+    const { data } = await supabase
+      .from("join_requests")
+      .select("id, status, companies(name)")
+      .eq("user_id", user.id)
+      .eq("status", "pending");
+
+    const pending = data && data.length > 0;
+    setHasPending(!!pending);
+    setMyRequests((data ?? []).map((r: any) => ({ id: r.id, company_name: r.companies?.name ?? "", status: r.status })));
+    setCheckingPending(false);
+  }, [user]);
+
+  useEffect(() => {
+    checkPendingRequests();
+  }, [checkPendingRequests]);
+
+  const handleRefreshStatus = async () => {
+    setRefreshing(true);
+    // Check if any request got approved (user now has membership)
+    await refresh();
+    await checkPendingRequests();
+    setRefreshing(false);
+  };
 
   const handleCreateCompany = async () => {
     const result = companyNameSchema.safeParse(companyName);
@@ -55,7 +84,6 @@ export default function OnboardingPage() {
     if (!user) return;
     setLoading(true);
 
-    // Verify company exists
     const { data: company, error: companyError } = await supabase
       .from("companies")
       .select("id, name")
@@ -75,8 +103,8 @@ export default function OnboardingPage() {
       else toast.error(isAr ? "فشل الإرسال" : "Failed");
     } else {
       toast.success(isAr ? `تم إرسال طلب الانضمام إلى "${company.name}"!` : `Join request sent to "${company.name}"!`);
-      // Refresh requests
-      fetchMyRequests();
+      setHasPending(true);
+      checkPendingRequests();
     }
   };
 
@@ -86,11 +114,70 @@ export default function OnboardingPage() {
     setMyRequests((requests ?? []).map((r: any) => ({ id: r.id, company_name: r.companies?.name ?? "", status: r.status })));
   };
 
-  // Fetch requests on tab switch
   const handleTabSwitch = (t: Tab) => {
     setTab(t);
     if (t === "join") fetchMyRequests();
   };
+
+  if (checkingPending) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <Loader2 className="w-8 h-8 animate-spin text-primary" />
+      </div>
+    );
+  }
+
+  // Show waiting screen if user has pending requests
+  if (hasPending) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center p-4" dir={dir}>
+        <div className="w-full max-w-md text-center">
+          <div className="w-20 h-20 mx-auto mb-6 rounded-2xl bg-primary/10 flex items-center justify-center border border-primary/20">
+            <Clock className="w-10 h-10 text-primary" />
+          </div>
+          <h1 className="text-2xl font-bold text-foreground mb-2">
+            {isAr ? "بانتظار الموافقة" : "Waiting for Approval"}
+          </h1>
+          <p className="text-muted-foreground text-sm mb-6">
+            {isAr
+              ? "تم إرسال طلبك بنجاح. سيقوم صاحب المتجر أو المسؤول بمراجعة طلبك."
+              : "Your request has been sent. The store owner or admin will review it."}
+          </p>
+
+          {myRequests.length > 0 && (
+            <div className="bg-card border border-border rounded-xl p-4 mb-6">
+              {myRequests.map(req => (
+                <div key={req.id} className="flex items-center justify-between py-2 text-sm">
+                  <span className="font-medium text-foreground">{req.company_name}</span>
+                  <span className="text-[11px] font-medium px-2 py-0.5 rounded-full bg-accent/10 text-accent flex items-center gap-1">
+                    <Clock className="w-3 h-3" />
+                    {isAr ? "قيد الانتظار" : "Pending"}
+                  </span>
+                </div>
+              ))}
+            </div>
+          )}
+
+          <Button onClick={handleRefreshStatus} className="h-11 px-6 font-semibold gap-2" disabled={refreshing}>
+            {refreshing ? <Loader2 className="w-4 h-4 animate-spin" /> : <RefreshCw className="w-4 h-4" />}
+            {isAr ? "تحديث الحالة" : "Refresh Status"}
+          </Button>
+
+          <div className="mt-4">
+            <button onClick={() => setHasPending(false)} className="text-xs text-muted-foreground hover:text-foreground transition-colors">
+              {isAr ? "إنشاء متجر جديد بدلاً من ذلك" : "Create a new store instead"}
+            </button>
+          </div>
+
+          <div className="mt-5">
+            <button onClick={signOut} className="text-sm text-muted-foreground hover:text-foreground transition-colors font-medium">
+              {isAr ? "تسجيل الخروج" : "Sign out"}
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-background flex items-center justify-center p-4" dir={dir}>
@@ -164,25 +251,6 @@ export default function OnboardingPage() {
                   {loading && <Loader2 className="w-4 h-4 animate-spin ltr:mr-2 rtl:ml-2" />}
                   {isAr ? "إرسال طلب انضمام" : "Send Join Request"}
                 </Button>
-
-                {myRequests.length > 0 && (
-                  <div className="mt-4 pt-4 border-t border-border">
-                    <h3 className="text-sm font-semibold mb-2">{isAr ? "طلباتي" : "My Requests"}</h3>
-                    {myRequests.map(req => (
-                      <div key={req.id} className="flex items-center justify-between py-2 text-sm">
-                        <span>{req.company_name}</span>
-                        <span className={`text-[11px] font-medium px-2 py-0.5 rounded-full flex items-center gap-1 ${
-                          req.status === "pending" ? "bg-accent/10 text-accent" : req.status === "approved" ? "bg-primary/10 text-primary" : "bg-destructive/10 text-destructive"
-                        }`}>
-                          {req.status === "pending" && <Clock className="w-3 h-3" />}
-                          {req.status === "approved" && <CheckCircle2 className="w-3 h-3" />}
-                          {req.status === "rejected" && <XCircle className="w-3 h-3" />}
-                          {req.status === "pending" ? (isAr ? "قيد الانتظار" : "Pending") : req.status === "approved" ? (isAr ? "مقبول" : "Approved") : (isAr ? "مرفوض" : "Rejected")}
-                        </span>
-                      </div>
-                    ))}
-                  </div>
-                )}
               </>
             )}
           </div>

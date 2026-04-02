@@ -225,6 +225,30 @@ export default function DashboardPage() {
           )}
         </div>
       )}
+
+      {/* Role Assignment Dialog */}
+      <Dialog open={!!approveTarget} onOpenChange={(open) => !open && setApproveTarget(null)}>
+        <DialogContent className="max-w-sm">
+          <DialogHeader>
+            <DialogTitle>{isAr ? "اختر الدور" : "Assign Role"}</DialogTitle>
+            <DialogDescription>
+              {isAr
+                ? `اختر دور "${approveTarget?.user_name}" في المتجر`
+                : `Choose a role for "${approveTarget?.user_name}"`}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="grid gap-3 pt-2">
+            <Button onClick={() => handleApproveWithRole("supervisor")} className="h-12 text-sm font-semibold gap-2" variant="outline">
+              <CheckCircle2 className="w-4 h-4 text-primary" />
+              {isAr ? "مشرف / مسؤول" : "Supervisor / Admin"}
+            </Button>
+            <Button onClick={() => handleApproveWithRole("cashier")} className="h-12 text-sm font-semibold gap-2" variant="outline">
+              <CheckCircle2 className="w-4 h-4 text-primary" />
+              {isAr ? "موظف / كاشير" : "Staff / Cashier"}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
