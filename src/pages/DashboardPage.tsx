@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { format } from "date-fns";
 import { ar, enUS } from "date-fns/locale";
 import { toast } from "sonner";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import type { Database } from "@/integrations/supabase/types";
 
 type AppRole = Database["public"]["Enums"]["app_role"];
@@ -64,10 +65,20 @@ export default function DashboardPage() {
 
   useEffect(() => { if (activeTab === "requests") fetchRequests(); }, [activeTab, fetchRequests]);
 
-  const handleRequest = async (requestId: string, action: "approved" | "rejected") => {
-    const { error } = await supabase.from("join_requests").update({ status: action }).eq("id", requestId);
+  const [approveTarget, setApproveTarget] = useState<JoinRequest | null>(null);
+
+  const handleReject = async (requestId: string) => {
+    const { error } = await supabase.from("join_requests").update({ status: "rejected" }).eq("id", requestId);
     if (error) toast.error(isAr ? "حدث خطأ" : "Error processing");
-    else { toast.success(action === "approved" ? (isAr ? "تم القبول" : "Approved") : (isAr ? "تم الرفض" : "Rejected")); fetchRequests(); }
+    else { toast.success(isAr ? "تم الرفض" : "Rejected"); fetchRequests(); }
+  };
+
+  const handleApproveWithRole = async (role: "supervisor" | "cashier") => {
+    if (!approveTarget) return;
+    const { error } = await supabase.from("join_requests").update({ status: "approved", requested_role: role }).eq("id", approveTarget.id);
+    if (error) toast.error(isAr ? "حدث خطأ" : "Error processing");
+    else { toast.success(isAr ? "تم القبول" : "Approved"); fetchRequests(); }
+    setApproveTarget(null);
   };
 
   const roleLabels: Record<AppRole, string> = {
@@ -201,10 +212,10 @@ export default function DashboardPage() {
                     </span>
                   </div>
                   <div className="flex gap-2">
-                    <Button size="sm" onClick={() => handleRequest(req.id, "approved")} className="h-8 text-xs gap-1">
+                    <Button size="sm" onClick={() => setApproveTarget(req)} className="h-8 text-xs gap-1">
                       <CheckCircle2 className="w-3.5 h-3.5" />{isAr ? "قبول" : "Approve"}
                     </Button>
-                    <Button size="sm" variant="ghost" onClick={() => handleRequest(req.id, "rejected")} className="text-destructive hover:bg-destructive/10 h-8 text-xs gap-1">
+                    <Button size="sm" variant="ghost" onClick={() => handleReject(req.id)} className="text-destructive hover:bg-destructive/10 h-8 text-xs gap-1">
                       <XCircle className="w-3.5 h-3.5" />{isAr ? "رفض" : "Reject"}
                     </Button>
                   </div>
@@ -214,6 +225,30 @@ export default function DashboardPage() {
           )}
         </div>
       )}
+
+      {/* Role Assignment Dialog */}
+      <Dialog open={!!approveTarget} onOpenChange={(open) => !open && setApproveTarget(null)}>
+        <DialogContent className="max-w-sm">
+          <DialogHeader>
+            <DialogTitle>{isAr ? "اختر الدور" : "Assign Role"}</DialogTitle>
+            <DialogDescription>
+              {isAr
+                ? `اختر دور "${approveTarget?.user_name}" في المتجر`
+                : `Choose a role for "${approveTarget?.user_name}"`}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="grid gap-3 pt-2">
+            <Button onClick={() => handleApproveWithRole("supervisor")} className="h-12 text-sm font-semibold gap-2" variant="outline">
+              <CheckCircle2 className="w-4 h-4 text-primary" />
+              {isAr ? "مشرف / مسؤول" : "Supervisor / Admin"}
+            </Button>
+            <Button onClick={() => handleApproveWithRole("cashier")} className="h-12 text-sm font-semibold gap-2" variant="outline">
+              <CheckCircle2 className="w-4 h-4 text-primary" />
+              {isAr ? "موظف / كاشير" : "Staff / Cashier"}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
