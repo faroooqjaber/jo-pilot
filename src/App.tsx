@@ -31,7 +31,7 @@ function AppRoutes() {
       <div className="min-h-screen flex items-center justify-center bg-background text-primary">
         <div className="text-center">
           <Loader2 className="w-12 h-12 animate-spin mx-auto mb-4" />
-          <h1 className="text-xl font-bold">Jo Pilot</h1>
+          <h1 className="text-xl font-bold">JO Pilot</h1>
         </div>
       </div>
     );
