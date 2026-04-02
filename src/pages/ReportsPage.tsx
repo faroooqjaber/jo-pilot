@@ -133,8 +133,8 @@ export default function ReportsPage() {
             <ResponsiveContainer width="100%" height={280}>
               <BarChart data={topProducts} layout="vertical">
                 <CartesianGrid strokeDasharray="3 3" stroke="hsl(214, 14%, 90%)" />
-                <XAxis type="number" tick={{ fontSize: 12 }} />
-                <YAxis dataKey="name" type="category" width={lang === "ar" ? 140 : 110} tick={{ fontSize: 11 }} />
+                <XAxis type="number" tick={{ fontSize: 11 }} />
+                <YAxis dataKey="name" type="category" width={lang === "ar" ? 120 : 100} tick={{ fontSize: 10, width: lang === "ar" ? 110 : 90 }} />
                 <Tooltip />
                 <Bar dataKey="qty" fill="hsl(162, 72%, 34%)" radius={[0, 6, 6, 0]} name={t("unitsSold")} />
               </BarChart>
