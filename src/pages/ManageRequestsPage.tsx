@@ -1,9 +1,10 @@
 import { useEffect, useState, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/hooks/useAuth";
 import { useCompany } from "@/hooks/useCompany";
 import { useI18n } from "@/lib/i18n";
 import { Button } from "@/components/ui/button";
-import { Users, Loader2, Trash2, UserPlus, Copy } from "lucide-react";
+import { Users, Loader2, Trash2, UserPlus, Copy, LogOut as LogOutIcon } from "lucide-react";
 import { toast } from "sonner";
 import type { Database } from "@/integrations/supabase/types";
 
@@ -15,13 +16,15 @@ interface Member {
 
 export default function ManageRequestsPage() {
   const { lang, dir } = useI18n();
-  const { membership } = useCompany();
+  const { user } = useAuth();
+  const { membership, refresh } = useCompany();
   const isAr = lang === "ar";
 
   const [members, setMembers] = useState<Member[]>([]);
   const [loading, setLoading] = useState(true);
 
   const canManage = membership?.role === "owner" || membership?.role === "manager" || membership?.role === "supervisor";
+  const canResign = membership?.role !== "owner";
 
   const roleLabels: Record<AppRole, string> = {
     owner: isAr ? "صاحب العمل" : "Owner",
@@ -54,7 +57,7 @@ export default function ManageRequestsPage() {
   const copyStoreId = () => {
     if (membership?.companyId) {
       navigator.clipboard.writeText(membership.companyId);
-      toast.success(isAr ? "تم نسخ معرف المتجر! أرسله للموظف لينضم" : "Store ID copied!");
+      toast.success(isAr ? "تم نسخ كود المتجر! أرسله للموظف لينضم" : "Store code copied!");
     }
   };
 
@@ -63,6 +66,23 @@ export default function ManageRequestsPage() {
     const { error } = await supabase.from("company_members").delete().eq("id", memberId);
     if (error) toast.error(isAr ? "فشل الإزالة" : "Failed");
     else { toast.success(isAr ? "تمت الإزالة" : "Removed"); fetchData(); }
+  };
+
+  const handleResign = async () => {
+    if (!user || !membership) return;
+    if (!confirm(isAr ? "هل أنت متأكد من الاستقالة من هذا المتجر؟ لن تتمكن من الوصول بعد ذلك." : "Are you sure you want to resign? You will lose access to this store.")) return;
+
+    // Find current user's membership row
+    const myMembership = members.find(m => m.user_id === user.id);
+    if (!myMembership) return;
+
+    const { error } = await supabase.from("company_members").delete().eq("id", myMembership.id);
+    if (error) {
+      toast.error(isAr ? "فشلت الاستقالة" : "Failed to resign");
+    } else {
+      toast.success(isAr ? "تم الاستقالة بنجاح" : "You have resigned successfully");
+      await refresh();
+    }
   };
 
   if (loading) return <div className="p-8 flex justify-center"><Loader2 className="w-8 h-8 animate-spin text-primary" /></div>;
@@ -74,12 +94,32 @@ export default function ManageRequestsPage() {
           <div className="w-9 h-9 rounded-xl bg-primary/10 flex items-center justify-center"><Users className="w-5 h-5 text-primary" /></div>
           {isAr ? "فريق العمل" : "Team"}
         </h1>
-        {canManage && (
-          <Button onClick={copyStoreId} variant="outline" className="gap-2 text-xs border-dashed border-primary">
-            <UserPlus size={16} /> {isAr ? "دعوة موظف" : "Invite"}
-          </Button>
-        )}
+        <div className="flex gap-2">
+          {canManage && (
+            <Button onClick={copyStoreId} variant="outline" className="gap-2 text-xs border-dashed border-primary">
+              <UserPlus size={16} /> {isAr ? "دعوة موظف" : "Invite"}
+            </Button>
+          )}
+          {canResign && (
+            <Button onClick={handleResign} variant="outline" className="gap-2 text-xs border-dashed border-destructive text-destructive hover:bg-destructive/10">
+              <LogOutIcon size={16} /> {isAr ? "استقالة" : "Resign"}
+            </Button>
+          )}
+        </div>
       </div>
+
+      {/* Store Code display for admins */}
+      {canManage && membership?.companyId && (
+        <div className="bg-muted/50 border border-border rounded-xl p-3 flex items-center justify-between">
+          <div>
+            <p className="text-xs text-muted-foreground font-medium">{isAr ? "كود المتجر (أرسله للموظف)" : "Store Code (share with staff)"}</p>
+            <p className="text-xs font-mono text-foreground mt-0.5 select-all">{membership.companyId}</p>
+          </div>
+          <Button onClick={copyStoreId} size="sm" variant="ghost" className="h-8 w-8 p-0">
+            <Copy size={14} />
+          </Button>
+        </div>
+      )}
 
       <div className="grid gap-3">
         {members.map(member => (
@@ -95,7 +135,7 @@ export default function ManageRequestsPage() {
             </div>
             <div className="flex items-center gap-3">
               <span className="text-[11px] bg-primary/10 text-primary px-3 py-1 rounded-full font-bold">{roleLabels[member.role]}</span>
-              {canManage && member.role !== "owner" && (
+              {canManage && member.role !== "owner" && member.user_id !== user?.id && (
                 <Button size="sm" variant="ghost" onClick={() => handleRemoveMember(member.id)} className="h-8 w-8 p-0 text-destructive">
                   <Trash2 size={14} />
                 </Button>

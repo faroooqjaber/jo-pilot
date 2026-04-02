@@ -4,7 +4,7 @@ export type Language = "ar" | "en";
 
 const translations = {
   // General
-  storeName: { ar: "JO Shops", en: "JO Shops" },
+  storeName: { ar: "JO Pilot", en: "JO Pilot" },
   save: { ar: "حفظ", en: "Save" },
   cancel: { ar: "إلغاء", en: "Cancel" },
   delete: { ar: "حذف", en: "Delete" },

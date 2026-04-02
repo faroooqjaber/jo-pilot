@@ -5,7 +5,7 @@ import { useI18n } from "@/lib/i18n";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { ShoppingCart, Mail, Lock, User, Loader2, AtSign } from "lucide-react";
+import { ShoppingBasket, Mail, Lock, User, Loader2, AtSign, Languages, Moon, Sun } from "lucide-react";
 import { toast } from "sonner";
 import { z } from "zod";
 
@@ -15,15 +15,19 @@ const nameSchema = z.string().trim().min(1).max(100);
 const usernameSchema = z.string().regex(/^[a-z0-9_]{3,30}$/);
 
 export default function AuthPage() {
-  const { t, lang, dir } = useI18n();
+  const { t, lang, dir, setLang } = useI18n();
   const [mode, setMode] = useState<"login" | "signup" | "forgot" | "username-login">("login");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [fullName, setFullName] = useState("");
   const [username, setUsername] = useState("");
   const [loading, setLoading] = useState(false);
+  const [dark, setDark] = useState(() => typeof window !== 'undefined' && document.documentElement.classList.contains('dark'));
 
   const isAr = lang === "ar";
+
+  const toggleDark = () => { document.documentElement.classList.toggle('dark'); setDark(!dark); };
+  const toggleLang = () => setLang(lang === "ar" ? "en" : "ar");
 
   const handleLogin = async () => {
     const emailResult = emailSchema.safeParse(email);
@@ -106,36 +110,46 @@ export default function AuthPage() {
   return (
     <div className="min-h-screen flex" dir={dir}>
       {/* Left panel - Branding */}
-      <div className="hidden lg:flex lg:w-[45%] xl:w-[40%] gradient-primary relative overflow-hidden items-center justify-center">
+      <div className="hidden lg:flex lg:w-[45%] xl:w-[40%] bg-background border-e border-border relative overflow-hidden items-center justify-center">
         <div className="absolute inset-0 opacity-10">
-          <div className="absolute top-20 -left-10 w-72 h-72 rounded-full bg-white/20 blur-3xl" />
-          <div className="absolute bottom-20 right-10 w-96 h-96 rounded-full bg-white/10 blur-3xl" />
+          <div className="absolute top-20 -left-10 w-72 h-72 rounded-full bg-primary/20 blur-3xl" />
+          <div className="absolute bottom-20 right-10 w-96 h-96 rounded-full bg-primary/10 blur-3xl" />
         </div>
         <div className="relative text-center px-12 space-y-6">
-          <div className="w-20 h-20 mx-auto rounded-2xl bg-white/15 backdrop-blur-sm flex items-center justify-center shadow-2xl">
-            <ShoppingCart className="w-10 h-10 text-white" />
+          <div className="w-20 h-20 mx-auto rounded-2xl bg-primary/10 backdrop-blur-sm flex items-center justify-center shadow-2xl border border-primary/20">
+            <ShoppingBasket className="w-10 h-10 text-primary" />
           </div>
-          <h1 className="text-4xl font-extrabold text-white tracking-tight">JO Shops</h1>
-          <p className="text-white/70 text-lg max-w-xs mx-auto leading-relaxed">
+          <h1 className="text-4xl font-extrabold text-primary tracking-tight">JO Pilot</h1>
+          <p className="text-muted-foreground text-lg max-w-xs mx-auto leading-relaxed">
             {isAr ? "نظام نقاط البيع الذكي لإدارة أعمالك بكفاءة" : "Smart POS system to manage your business efficiently"}
           </p>
           <div className="flex justify-center gap-3 pt-4">
             {[1, 2, 3].map(i => (
-              <div key={i} className="w-2 h-2 rounded-full bg-white/30" />
+              <div key={i} className="w-2 h-2 rounded-full bg-primary/30" />
             ))}
           </div>
         </div>
       </div>
 
       {/* Right panel - Auth form */}
-      <div className="flex-1 flex items-center justify-center p-6 bg-background">
+      <div className="flex-1 flex items-center justify-center p-6 bg-background relative">
+        {/* Language & Theme toggles */}
+        <div className="absolute top-4 flex gap-2 ltr:right-4 rtl:left-4">
+          <button onClick={toggleLang} className="w-9 h-9 rounded-lg border border-border flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-muted transition-colors" title={lang === "ar" ? "English" : "العربية"}>
+            <Languages className="w-4 h-4" />
+          </button>
+          <button onClick={toggleDark} className="w-9 h-9 rounded-lg border border-border flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-muted transition-colors" title={dark ? "Light" : "Dark"}>
+            {dark ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
+          </button>
+        </div>
+
         <div className="w-full max-w-[420px]">
           {/* Mobile logo */}
           <div className="text-center mb-8 lg:hidden">
-            <div className="w-16 h-16 mx-auto mb-4 rounded-2xl gradient-primary flex items-center justify-center shadow-lg shadow-primary/25">
-              <ShoppingCart className="w-8 h-8 text-primary-foreground" />
+            <div className="w-16 h-16 mx-auto mb-4 rounded-2xl bg-primary/10 flex items-center justify-center shadow-lg shadow-primary/25 border border-primary/20">
+              <ShoppingBasket className="w-8 h-8 text-primary" />
             </div>
-            <h1 className="text-2xl font-extrabold text-foreground tracking-tight">JO Shops</h1>
+            <h1 className="text-2xl font-extrabold text-primary tracking-tight">JO Pilot</h1>
           </div>
 
           {/* Title */}

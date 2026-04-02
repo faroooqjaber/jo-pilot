@@ -1,6 +1,6 @@
 import { ReactNode, useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
-import { LayoutDashboard, Package, ShoppingCart, Moon, Sun, Settings, BarChart3, Users, LogOut, Languages, Store } from "lucide-react";
+import { LayoutDashboard, Package, ShoppingCart, Moon, Sun, Settings, BarChart3, Users, LogOut, Languages, ShoppingBasket } from "lucide-react";
 import { useI18n } from "@/lib/i18n";
 import { useAuth } from "@/hooks/useAuth";
 import { useCompany } from "@/hooks/useCompany";
@@ -41,7 +41,7 @@ export default function POSLayout({ children }: { children: ReactNode }) {
   const navItems = allNavItems.filter(item => role && item.roles.includes(role));
   const toggleDark = () => { document.documentElement.classList.toggle('dark'); setDark(!dark); };
   const toggleLang = () => setLang(lang === "ar" ? "en" : "ar");
-  const initials = fullName ? fullName.slice(0, 2).toUpperCase() : "JS";
+  const initials = fullName ? fullName.slice(0, 2).toUpperCase() : "JP";
 
   return (
     <div className="flex h-screen overflow-hidden" dir={dir}>
@@ -50,10 +50,10 @@ export default function POSLayout({ children }: { children: ReactNode }) {
         
         <div className="p-4 lg:px-5 lg:py-6 flex items-center gap-3">
           <div className="w-10 h-10 rounded-xl bg-primary flex items-center justify-center shrink-0 shadow-lg shadow-primary/30">
-            <Store className="w-5 h-5 text-white" />
+            <ShoppingBasket className="w-5 h-5 text-white" />
           </div>
           <div className="hidden lg:block min-w-0">
-            <span className="text-sidebar-accent-foreground font-black text-lg tracking-tighter block">JO Shops</span>
+            <span className="text-sidebar-accent-foreground font-black text-lg tracking-tighter block">JO Pilot</span>
             {role && <span className="text-[10px] uppercase tracking-widest text-primary font-bold">{roleLabel}</span>}
           </div>
         </div>
