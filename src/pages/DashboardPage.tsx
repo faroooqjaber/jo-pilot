@@ -212,10 +212,10 @@ export default function DashboardPage() {
                     </span>
                   </div>
                   <div className="flex gap-2">
-                    <Button size="sm" onClick={() => handleRequest(req.id, "approved")} className="h-8 text-xs gap-1">
+                    <Button size="sm" onClick={() => setApproveTarget(req)} className="h-8 text-xs gap-1">
                       <CheckCircle2 className="w-3.5 h-3.5" />{isAr ? "قبول" : "Approve"}
                     </Button>
-                    <Button size="sm" variant="ghost" onClick={() => handleRequest(req.id, "rejected")} className="text-destructive hover:bg-destructive/10 h-8 text-xs gap-1">
+                    <Button size="sm" variant="ghost" onClick={() => handleReject(req.id)} className="text-destructive hover:bg-destructive/10 h-8 text-xs gap-1">
                       <XCircle className="w-3.5 h-3.5" />{isAr ? "رفض" : "Reject"}
                     </Button>
                   </div>
