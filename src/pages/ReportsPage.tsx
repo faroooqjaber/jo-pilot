@@ -117,8 +117,8 @@ export default function ReportsPage() {
           <ResponsiveContainer width="100%" height={280}>
             <LineChart data={trendData}>
               <CartesianGrid strokeDasharray="3 3" stroke="hsl(214, 14%, 90%)" />
-              <XAxis dataKey="label" tick={{ fontSize: 12 }} />
-              <YAxis tick={{ fontSize: 12 }} />
+              <XAxis dataKey="label" tick={{ fontSize: 11 }} interval={0} />
+              <YAxis tick={{ fontSize: 11 }} width={60} />
               <Tooltip formatter={(v: number) => fmt(v)} />
               <Line type="monotone" dataKey="revenue" stroke="hsl(162, 72%, 34%)" strokeWidth={2.5} dot={{ r: 4, fill: "hsl(162, 72%, 34%)" }} name={t("revenue")} />
             </LineChart>
