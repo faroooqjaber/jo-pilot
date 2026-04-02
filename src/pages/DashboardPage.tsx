@@ -65,10 +65,20 @@ export default function DashboardPage() {
 
   useEffect(() => { if (activeTab === "requests") fetchRequests(); }, [activeTab, fetchRequests]);
 
-  const handleRequest = async (requestId: string, action: "approved" | "rejected") => {
-    const { error } = await supabase.from("join_requests").update({ status: action }).eq("id", requestId);
+  const [approveTarget, setApproveTarget] = useState<JoinRequest | null>(null);
+
+  const handleReject = async (requestId: string) => {
+    const { error } = await supabase.from("join_requests").update({ status: "rejected" }).eq("id", requestId);
     if (error) toast.error(isAr ? "حدث خطأ" : "Error processing");
-    else { toast.success(action === "approved" ? (isAr ? "تم القبول" : "Approved") : (isAr ? "تم الرفض" : "Rejected")); fetchRequests(); }
+    else { toast.success(isAr ? "تم الرفض" : "Rejected"); fetchRequests(); }
+  };
+
+  const handleApproveWithRole = async (role: "supervisor" | "cashier") => {
+    if (!approveTarget) return;
+    const { error } = await supabase.from("join_requests").update({ status: "approved", requested_role: role }).eq("id", approveTarget.id);
+    if (error) toast.error(isAr ? "حدث خطأ" : "Error processing");
+    else { toast.success(isAr ? "تم القبول" : "Approved"); fetchRequests(); }
+    setApproveTarget(null);
   };
 
   const roleLabels: Record<AppRole, string> = {
