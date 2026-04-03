@@ -4,7 +4,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { useCompany } from "@/hooks/useCompany";
 import { useI18n } from "@/lib/i18n";
 import { Button } from "@/components/ui/button";
-import { Users, Loader2, Trash2, UserPlus, Copy, LogOut as LogOutIcon, CheckCircle2, XCircle, Clock } from "lucide-react";
+import { Users, Loader2, Trash2, Copy, LogOut as LogOutIcon, CheckCircle2, XCircle, Clock } from "lucide-react";
 import { toast } from "sonner";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import type { Database } from "@/integrations/supabase/types";
@@ -86,6 +86,23 @@ export default function ManageRequestsPage() {
   useEffect(() => { fetchMembers(); }, [fetchMembers]);
   useEffect(() => { if (canManage) fetchRequests(); }, [fetchRequests, canManage]);
 
+  // Realtime subscription for new join requests
+  useEffect(() => {
+    if (!membership?.companyId || !canManage) return;
+    const channel = supabase
+      .channel('join-requests-realtime')
+      .on(
+        'postgres_changes',
+        { event: 'INSERT', schema: 'public', table: 'join_requests', filter: `company_id=eq.${membership.companyId}` },
+        () => {
+          toast.info(isAr ? "📩 طلب انضمام جديد!" : "📩 New join request!", { duration: 5000 });
+          fetchRequests();
+        }
+      )
+      .subscribe();
+    return () => { supabase.removeChannel(channel); };
+  }, [membership?.companyId, canManage, isAr, fetchRequests]);
+
   const copyStoreId = () => {
     if (membership?.companyId) {
       navigator.clipboard.writeText(membership.companyId);
@@ -138,29 +155,25 @@ export default function ManageRequestsPage() {
           <div className="w-9 h-9 rounded-xl bg-primary/10 flex items-center justify-center"><Users className="w-5 h-5 text-primary" /></div>
           {isAr ? "فريق العمل" : "Team"}
         </h1>
-        <div className="flex gap-2">
-          {canManage && (
-            <Button onClick={copyStoreId} variant="outline" className="gap-2 text-xs border-dashed border-primary">
-              <UserPlus size={16} /> {isAr ? "دعوة" : "Invite"}
-            </Button>
-          )}
-          {canResign && (
-            <Button onClick={handleResign} variant="outline" className="gap-2 text-xs border-dashed border-destructive text-destructive hover:bg-destructive/10">
-              <LogOutIcon size={16} /> {isAr ? "استقالة" : "Resign"}
-            </Button>
-          )}
-        </div>
+        {canResign && (
+          <Button onClick={handleResign} variant="outline" className="gap-2 text-xs border-dashed border-destructive text-destructive hover:bg-destructive/10">
+            <LogOutIcon size={16} /> {isAr ? "استقالة" : "Resign"}
+          </Button>
+        )}
       </div>
 
-      {/* Store Code */}
+      {/* Store Code + Invite (merged) */}
       {canManage && membership?.companyId && (
-        <div className="bg-muted/50 border border-border rounded-xl p-3 flex items-center justify-between">
-          <div>
-            <p className="text-xs text-muted-foreground font-medium">{isAr ? "رمز المتجر (شاركه مع الموظف)" : "Store Code (share with staff)"}</p>
-            <p className="text-xs font-mono text-foreground mt-0.5 select-all">{membership.companyId}</p>
+        <button onClick={copyStoreId} className="w-full bg-muted/50 border border-dashed border-primary/40 rounded-xl p-3 flex items-center justify-between hover:bg-primary/5 transition-colors group">
+          <div className={dir === "rtl" ? "text-right" : "text-left"}>
+            <p className="text-xs text-primary font-bold flex items-center gap-1.5">
+              <Copy size={13} className="opacity-70" />
+              {isAr ? "دعوة — انسخ رمز المتجر" : "Invite — Copy Store Code"}
+            </p>
+            <p className="text-xs font-mono text-muted-foreground mt-0.5 select-all">{membership.companyId}</p>
           </div>
-          <Button onClick={copyStoreId} size="sm" variant="ghost" className="h-8 w-8 p-0"><Copy size={14} /></Button>
-        </div>
+          <Copy size={16} className="text-primary opacity-0 group-hover:opacity-100 transition-opacity" />
+        </button>
       )}
 
       {/* Tabs */}
@@ -203,13 +216,11 @@ export default function ManageRequestsPage() {
           ))}
         </div>
       ) : (
-        /* Join Requests Tab */
         <div className="bg-card border border-border rounded-2xl p-6">
           <h2 className="font-bold text-foreground mb-5 flex items-center gap-2 text-[15px]">
             <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center"><Clock className="w-4 h-4 text-primary" /></div>
             {isAr ? "طلبات بانتظار موافقتك" : "Pending Join Requests"}
           </h2>
-
           {reqLoading ? (
             <div className="py-8 flex justify-center"><Loader2 className="w-6 h-6 animate-spin text-primary" /></div>
           ) : requests.length === 0 ? (
@@ -240,7 +251,6 @@ export default function ManageRequestsPage() {
         </div>
       )}
 
-      {/* Role Assignment Dialog */}
       <Dialog open={!!approveTarget} onOpenChange={(open) => !open && setApproveTarget(null)}>
         <DialogContent className="max-w-sm">
           <DialogHeader>
