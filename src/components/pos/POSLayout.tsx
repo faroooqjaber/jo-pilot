@@ -15,12 +15,22 @@ export default function POSLayout({ children }: { children: ReactNode }) {
   const [dark, setDark] = useState(() => typeof window !== 'undefined' && document.documentElement.classList.contains('dark'));
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
   const [fullName, setFullName] = useState("");
+  const [posFullscreen, setPosFullscreen] = useState(false);
 
   useEffect(() => {
     if (!user) return;
     supabase.from("profiles").select("full_name, avatar_url").eq("user_id", user.id).single()
       .then(({ data }) => { if (data) { setFullName(data.full_name || ""); setAvatarUrl(data.avatar_url); } });
   }, [user]);
+
+  // Listen for fullscreen attribute changes
+  useEffect(() => {
+    const observer = new MutationObserver(() => {
+      setPosFullscreen(document.body.hasAttribute("data-pos-fullscreen"));
+    });
+    observer.observe(document.body, { attributes: true, attributeFilter: ["data-pos-fullscreen"] });
+    return () => observer.disconnect();
+  }, []);
 
   const role = membership?.role;
   const isAr = lang === "ar";
@@ -42,6 +52,10 @@ export default function POSLayout({ children }: { children: ReactNode }) {
   const toggleDark = () => { document.documentElement.classList.toggle('dark'); setDark(!dark); };
   const toggleLang = () => setLang(lang === "ar" ? "en" : "ar");
   const initials = fullName ? fullName.slice(0, 2).toUpperCase() : "JP";
+
+  if (posFullscreen) {
+    return <main className="h-screen overflow-auto bg-background" dir={dir}>{children}</main>;
+  }
 
   return (
     <div className="flex h-screen overflow-hidden" dir={dir}>

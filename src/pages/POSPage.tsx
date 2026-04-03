@@ -5,7 +5,7 @@ import { getLocalizedCategoryLabel } from "@/lib/product-categories";
 import { useI18n } from "@/lib/i18n";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Search, Plus, Minus, Trash2, Printer, CheckCircle, Download, ShoppingCart } from "lucide-react";
+import { Search, Plus, Minus, Trash2, Printer, CheckCircle, Download, ShoppingCart, Maximize, Minimize } from "lucide-react";
 import Receipt from "@/components/pos/Receipt";
 import { toast } from "sonner";
 import { toPng } from "html-to-image";
@@ -16,6 +16,7 @@ export default function POSPage() {
   const [cart, setCart] = useState<CartItem[]>([]);
   const [search, setSearch] = useState("");
   const [lastTransaction, setLastTransaction] = useState<Transaction | null>(null);
+  const [fullscreen, setFullscreen] = useState(false);
   const receiptRef = useRef<HTMLDivElement>(null);
 
   const settings = getStoreSettings();
@@ -24,6 +25,16 @@ export default function POSPage() {
   const vatPct = settings.vatRate;
 
   useEffect(() => { setProducts(getProducts()); }, []);
+
+  // Communicate fullscreen state to parent layout
+  useEffect(() => {
+    if (fullscreen) {
+      document.body.setAttribute("data-pos-fullscreen", "true");
+    } else {
+      document.body.removeAttribute("data-pos-fullscreen");
+    }
+    return () => { document.body.removeAttribute("data-pos-fullscreen"); };
+  }, [fullscreen]);
 
   const query = search.trim().toLowerCase();
   const filtered = products.filter((p) => {
@@ -84,12 +95,14 @@ export default function POSPage() {
 
   const fmt = (n: number) => `${n.toFixed(2)} ${currencySymbol}`;
 
+  const isAr = dir === "rtl";
+
   return (
-    <div className="flex h-full" dir={dir}>
+    <div className={`flex h-full ${fullscreen ? "fixed inset-0 z-50 bg-background" : ""}`} dir={dir}>
       {/* Products Grid */}
       <div className="flex-1 flex flex-col p-4 lg:p-5 overflow-hidden">
-        <div className="mb-4">
-          <div className="relative">
+        <div className="mb-4 flex gap-2">
+          <div className="relative flex-1">
             <Search className={`absolute top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground ${dir === "rtl" ? "right-3.5" : "left-3.5"}`} />
             <Input
               placeholder={t("searchByNameOrBarcode")}
@@ -99,6 +112,15 @@ export default function POSPage() {
               autoFocus
             />
           </div>
+          <Button
+            variant="outline"
+            size="icon"
+            className="h-11 w-11 shrink-0"
+            onClick={() => setFullscreen(f => !f)}
+            title={fullscreen ? (isAr ? "إلغاء ملء الشاشة" : "Exit Fullscreen") : (isAr ? "ملء الشاشة" : "Fullscreen")}
+          >
+            {fullscreen ? <Minimize className="w-4 h-4" /> : <Maximize className="w-4 h-4" />}
+          </Button>
         </div>
 
         <div className="flex-1 overflow-auto grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-3 auto-rows-min">
