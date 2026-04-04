@@ -168,15 +168,17 @@ export default function POSPage() {
             >
               <Camera className="w-4 h-4" />
             </Button>
-            <Button
-              variant="outline"
-              size="icon"
-              className="h-11 w-11 shrink-0"
-              onClick={toggleFullscreen}
-              title={fullscreen ? (isAr ? "إلغاء ملء الشاشة" : "Exit Fullscreen") : (isAr ? "ملء الشاشة" : "Fullscreen")}
-            >
-              {fullscreen ? <Minimize className="w-4 h-4" /> : <Maximize className="w-4 h-4" />}
-            </Button>
+            {!fullscreen && (
+              <Button
+                variant="outline"
+                size="icon"
+                className="h-11 w-11 shrink-0"
+                onClick={toggleFullscreen}
+                title={isAr ? "ملء الشاشة" : "Fullscreen"}
+              >
+                <Maximize className="w-4 h-4" />
+              </Button>
+            )}
           </div>
 
           <div className="flex-1 overflow-auto grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-4 gap-2 sm:gap-3 auto-rows-min">
