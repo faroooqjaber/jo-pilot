@@ -131,6 +131,13 @@ export default function POSPage() {
     setFullscreen(f => !f);
   };
 
+  // Sync state when user exits fullscreen via Escape key
+  useEffect(() => {
+    const handler = () => { if (!document.fullscreenElement) setFullscreen(false); };
+    document.addEventListener("fullscreenchange", handler);
+    return () => document.removeEventListener("fullscreenchange", handler);
+  }, []);
+
   const fmt = (n: number) => `${n.toFixed(2)} ${currencySymbol}`;
 
   const isAr = dir === "rtl";
@@ -138,6 +145,16 @@ export default function POSPage() {
   return (
     <>
       <div className={`flex flex-col md:flex-row h-full ${fullscreen ? "fixed inset-0 z-50 bg-background" : ""}`} dir={dir}>
+        {/* Fullscreen Exit Bar */}
+        {fullscreen && (
+          <div className="flex items-center justify-between px-3 py-2 bg-muted/50 border-b border-border shrink-0">
+            <span className="text-sm font-semibold text-foreground">{isAr ? "وضع ملء الشاشة" : "Fullscreen Mode"}</span>
+            <Button variant="destructive" size="sm" className="gap-2 h-8" onClick={toggleFullscreen}>
+              <Minimize className="w-3.5 h-3.5" />
+              {isAr ? "خروج" : "Exit"}
+            </Button>
+          </div>
+        )}
         {/* Products Grid */}
         <div className="flex-1 flex flex-col p-3 lg:p-5 overflow-hidden min-w-0">
           <div className="mb-3 flex gap-2">
@@ -161,15 +178,17 @@ export default function POSPage() {
             >
               <Camera className="w-4 h-4" />
             </Button>
-            <Button
-              variant="outline"
-              size="icon"
-              className="h-11 w-11 shrink-0"
-              onClick={toggleFullscreen}
-              title={fullscreen ? (isAr ? "إلغاء ملء الشاشة" : "Exit Fullscreen") : (isAr ? "ملء الشاشة" : "Fullscreen")}
-            >
-              {fullscreen ? <Minimize className="w-4 h-4" /> : <Maximize className="w-4 h-4" />}
-            </Button>
+            {!fullscreen && (
+              <Button
+                variant="outline"
+                size="icon"
+                className="h-11 w-11 shrink-0"
+                onClick={toggleFullscreen}
+                title={isAr ? "ملء الشاشة" : "Fullscreen"}
+              >
+                <Maximize className="w-4 h-4" />
+              </Button>
+            )}
           </div>
 
           <div className="flex-1 overflow-auto grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-4 gap-2 sm:gap-3 auto-rows-min">
