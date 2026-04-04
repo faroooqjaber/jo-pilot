@@ -145,6 +145,16 @@ export default function POSPage() {
   return (
     <>
       <div className={`flex flex-col md:flex-row h-full ${fullscreen ? "fixed inset-0 z-50 bg-background" : ""}`} dir={dir}>
+        {/* Fullscreen Exit Bar */}
+        {fullscreen && (
+          <div className="flex items-center justify-between px-3 py-2 bg-muted/50 border-b border-border shrink-0">
+            <span className="text-sm font-semibold text-foreground">{isAr ? "وضع ملء الشاشة" : "Fullscreen Mode"}</span>
+            <Button variant="destructive" size="sm" className="gap-2 h-8" onClick={toggleFullscreen}>
+              <Minimize className="w-3.5 h-3.5" />
+              {isAr ? "خروج" : "Exit"}
+            </Button>
+          </div>
+        )}
         {/* Products Grid */}
         <div className="flex-1 flex flex-col p-3 lg:p-5 overflow-hidden min-w-0">
           <div className="mb-3 flex gap-2">
