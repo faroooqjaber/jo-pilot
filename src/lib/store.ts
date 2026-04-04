@@ -122,12 +122,12 @@ export function saveProducts(products: Product[]) {
   localStorage.setItem(PRODUCTS_KEY, JSON.stringify(products));
 }
 
-export function addProduct(product: Omit<Product, 'id' | 'barcode' | 'createdAt'>): Product {
+export function addProduct(product: Omit<Product, 'id' | 'createdAt'> & { barcode?: string }): Product {
   const products = getProducts();
   const newProduct: Product = {
     ...product,
     id: crypto.randomUUID(),
-    barcode: generateEAN13(),
+    barcode: product.barcode || generateEAN13(),
     createdAt: new Date().toISOString(),
   };
   products.push(newProduct);

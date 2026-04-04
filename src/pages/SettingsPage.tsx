@@ -48,7 +48,12 @@ export default function SettingsPage() {
     const { error } = await supabase.from("companies").delete().eq("id", membership.companyId);
     setDeleteLoading(false);
     if (error) toast.error(isAr ? "فشل حذف الشركة" : "Failed to delete company");
-    else { toast.success(isAr ? "تم حذف الشركة" : "Company deleted"); await refresh(); signOut(); }
+    else {
+      toast.success(isAr ? "تم حذف الشركة" : "Company deleted");
+      await refresh();
+      // Redirect to onboarding instead of logging out
+      window.location.href = "/onboarding";
+    }
   };
 
   return (
