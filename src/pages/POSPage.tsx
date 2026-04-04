@@ -131,6 +131,13 @@ export default function POSPage() {
     setFullscreen(f => !f);
   };
 
+  // Sync state when user exits fullscreen via Escape key
+  useEffect(() => {
+    const handler = () => { if (!document.fullscreenElement) setFullscreen(false); };
+    document.addEventListener("fullscreenchange", handler);
+    return () => document.removeEventListener("fullscreenchange", handler);
+  }, []);
+
   const fmt = (n: number) => `${n.toFixed(2)} ${currencySymbol}`;
 
   const isAr = dir === "rtl";
