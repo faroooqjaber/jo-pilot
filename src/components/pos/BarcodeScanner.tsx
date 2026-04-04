@@ -14,6 +14,7 @@ interface Props {
 export default function BarcodeScanner({ open, onClose, onScan }: Props) {
   const { t, dir } = useI18n();
   const scannerRef = useRef<Html5Qrcode | null>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
   const [error, setError] = useState("");
   const containerId = "barcode-scanner-container";
 
@@ -21,25 +22,38 @@ export default function BarcodeScanner({ open, onClose, onScan }: Props) {
     if (!open) return;
     setError("");
 
-    const scanner = new Html5Qrcode(containerId);
-    scannerRef.current = scanner;
+    // Wait for DOM element to be rendered
+    const timeout = setTimeout(() => {
+      const el = document.getElementById(containerId);
+      if (!el) {
+        setError(dir === "rtl" ? "لا يمكن تحميل الماسح" : "Cannot load scanner");
+        return;
+      }
 
-    scanner.start(
-      { facingMode: "environment" },
-      { fps: 10, qrbox: { width: 280, height: 160 } },
-      (decodedText) => {
-        onScan(decodedText);
-        scanner.stop().catch(() => {});
-        onClose();
-      },
-      () => {} // ignore scan failures
-    ).catch(() => {
-      setError(dir === "rtl" ? "لا يمكن الوصول إلى الكاميرا" : "Cannot access camera");
-    });
+      const scanner = new Html5Qrcode(containerId);
+      scannerRef.current = scanner;
+
+      scanner.start(
+        { facingMode: "environment" },
+        { fps: 10, qrbox: { width: 280, height: 160 } },
+        (decodedText) => {
+          onScan(decodedText);
+          scanner.stop().catch(() => {});
+          onClose();
+        },
+        () => {}
+      ).catch(() => {
+        setError(dir === "rtl" ? "لا يمكن الوصول إلى الكاميرا" : "Cannot access camera");
+      });
+    }, 300);
 
     return () => {
-      scanner.stop().catch(() => {});
-      scanner.clear();
+      clearTimeout(timeout);
+      if (scannerRef.current) {
+        scannerRef.current.stop().catch(() => {});
+        scannerRef.current.clear();
+        scannerRef.current = null;
+      }
     };
   }, [open]);
 
@@ -52,7 +66,7 @@ export default function BarcodeScanner({ open, onClose, onScan }: Props) {
             {dir === "rtl" ? "مسح الباركود" : "Scan Barcode"}
           </DialogTitle>
         </DialogHeader>
-        <div id={containerId} className="w-full rounded-lg overflow-hidden" />
+        <div id={containerId} ref={containerRef} className="w-full min-h-[200px] rounded-lg overflow-hidden" />
         {error && <p className="text-destructive text-sm text-center">{error}</p>}
         <Button variant="outline" onClick={onClose} className="w-full gap-2">
           <X className="w-4 h-4" />
