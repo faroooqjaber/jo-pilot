@@ -105,20 +105,7 @@ export default function DashboardPage() {
         <h1 className="text-2xl font-bold text-foreground tracking-tight">{t("dashboard")}</h1>
       </div>
 
-      {/* Tabs */}
-      {canManageRequests && (
-        <div className="flex gap-1 bg-muted/50 p-1 rounded-xl w-fit">
-          {tabs.map(tab => (
-            <button key={tab.id} onClick={() => setActiveTab(tab.id)}
-              className={`px-4 py-2 rounded-lg text-sm font-semibold transition-all ${activeTab === tab.id ? "bg-card text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"}`}>
-              {tab.label}
-              {tab.id === "requests" && requests.length > 0 && (
-                <span className="ml-1.5 bg-primary text-primary-foreground text-[10px] px-1.5 py-0.5 rounded-full font-bold">{requests.length}</span>
-              )}
-            </button>
-          ))}
-        </div>
-      )}
+      {/* Tabs removed — team management hidden */}
 
       {activeTab === "overview" ? (
         <>
