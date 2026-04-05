@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Product } from "@/lib/store";
+import { Product, TaxRate } from "@/lib/store";
 import { JOD_CURRENCY } from "@/lib/store-settings";
 import {
   PRODUCT_CATEGORY_OPTIONS,
@@ -19,7 +19,7 @@ import BarcodeScanner from "./BarcodeScanner";
 interface Props {
   open: boolean;
   onClose: () => void;
-  onSave: (data: { name: string; category: string; salePrice: number; costPrice: number; stock: number; lowStockThreshold: number; barcode?: string }) => void;
+  onSave: (data: { name: string; category: string; salePrice: number; costPrice: number; stock: number; lowStockThreshold: number; barcode?: string; taxRate: TaxRate }) => void;
   initial?: Product | null;
 }
 
@@ -33,6 +33,7 @@ export default function ProductForm({ open, onClose, onSave, initial }: Props) {
   const [stock, setStock] = useState("");
   const [threshold, setThreshold] = useState("5");
   const [barcode, setBarcode] = useState("");
+  const [taxRate, setTaxRate] = useState<TaxRate>(16);
   const [scannerOpen, setScannerOpen] = useState(false);
 
   useEffect(() => {
@@ -44,6 +45,7 @@ export default function ProductForm({ open, onClose, onSave, initial }: Props) {
       setStock(initial?.stock?.toString() || "");
       setThreshold(initial?.lowStockThreshold?.toString() || "5");
       setBarcode(initial?.barcode || "");
+      setTaxRate(initial?.taxRate ?? 16);
     }
   }, [open, initial]);
 
@@ -62,6 +64,7 @@ export default function ProductForm({ open, onClose, onSave, initial }: Props) {
       costPrice: parseFloat(costPrice),
       stock: parseInt(stock),
       lowStockThreshold: parseInt(threshold) || 5,
+      taxRate,
       ...(barcode.trim() ? { barcode: barcode.trim() } : {}),
     });
     onClose();
@@ -119,6 +122,27 @@ export default function ProductForm({ open, onClose, onSave, initial }: Props) {
               <div>
                 <Label>{t("costPrice")} ({JOD_CURRENCY.symbol})</Label>
                 <Input type="number" step="0.01" min="0" value={costPrice} onChange={e => setCostPrice(e.target.value)} className="touch-target" required />
+              </div>
+            </div>
+
+            {/* Tax Rate */}
+            <div>
+              <Label>{isAr ? "نسبة الضريبة" : "Tax Rate"}</Label>
+              <div className="grid grid-cols-4 gap-2 mt-1">
+                {([16, 8, 4, 0] as TaxRate[]).map(rate => (
+                  <button
+                    key={rate}
+                    type="button"
+                    onClick={() => setTaxRate(rate)}
+                    className={`py-2 rounded-lg text-sm font-semibold border transition-all ${
+                      taxRate === rate
+                        ? "border-primary bg-primary/10 text-primary"
+                        : "border-input text-muted-foreground hover:border-primary/50"
+                    }`}
+                  >
+                    {rate}%
+                  </button>
+                ))}
               </div>
             </div>
             <div className="grid grid-cols-2 gap-3">

@@ -3,6 +3,8 @@ import { getStoreSettings, JORDAN_DEFAULT_VAT_RATE } from "@/lib/store-settings"
 // POS Data Store using localStorage for persistence
 // Barcode Generation: Uses EAN-13 format with auto-generated check digit
 
+export type TaxRate = 16 | 8 | 4 | 0;
+
 export interface Product {
   id: string;
   name: string;
@@ -12,6 +14,7 @@ export interface Product {
   stock: number;
   barcode: string;
   lowStockThreshold: number;
+  taxRate: TaxRate;
   createdAt: string;
 }
 
@@ -122,12 +125,13 @@ export function saveProducts(products: Product[]) {
   localStorage.setItem(PRODUCTS_KEY, JSON.stringify(products));
 }
 
-export function addProduct(product: Omit<Product, 'id' | 'createdAt'> & { barcode?: string }): Product {
+export function addProduct(product: Omit<Product, 'id' | 'createdAt'> & { barcode?: string; taxRate?: TaxRate }): Product {
   const products = getProducts();
   const newProduct: Product = {
     ...product,
     id: crypto.randomUUID(),
     barcode: product.barcode || generateEAN13(),
+    taxRate: product.taxRate ?? 16,
     createdAt: new Date().toISOString(),
   };
   products.push(newProduct);
@@ -157,7 +161,10 @@ export function getTransactions(): Transaction[] {
 
 export function saveTransaction(items: CartItem[]): Transaction {
   const subtotal = items.reduce((sum, item) => sum + item.product.salePrice * item.quantity, 0);
-  const tax = subtotal * getVatRate();
+  const tax = items.reduce((sum, item) => {
+    const rate = (item.product.taxRate ?? 16) / 100;
+    return sum + item.product.salePrice * item.quantity * rate;
+  }, 0);
   const total = subtotal + tax;
   const now = new Date();
 
