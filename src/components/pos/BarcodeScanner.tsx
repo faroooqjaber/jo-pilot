@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { Html5Qrcode } from "html5-qrcode";
+import { Html5Qrcode, Html5QrcodeSupportedFormats } from "html5-qrcode";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { useI18n } from "@/lib/i18n";
@@ -62,13 +62,22 @@ export default function BarcodeScanner({ open, onClose, onScan }: Props) {
         return;
       }
 
-      const scanner = new Html5Qrcode(containerId);
+      const scanner = new Html5Qrcode(containerId, {
+        formatsToSupport: [
+          Html5QrcodeSupportedFormats.EAN_13,
+          Html5QrcodeSupportedFormats.CODE_128,
+          Html5QrcodeSupportedFormats.EAN_8,
+          Html5QrcodeSupportedFormats.UPC_A,
+          Html5QrcodeSupportedFormats.QR_CODE,
+        ],
+        verbose: false,
+      });
       scannerRef.current = scanner;
 
       scanner
         .start(
           { facingMode: "environment" },
-          { fps: 10, qrbox: { width: 280, height: 160 } },
+          { fps: 15, qrbox: { width: 300, height: 120 }, aspectRatio: 2.0 },
           async (decodedText) => {
             onScan(decodedText);
             await cleanupScanner();

@@ -100,12 +100,11 @@ export default function SettingsPage() {
           <div className="border border-border rounded-lg bg-muted px-3 py-2.5 text-sm text-foreground">{t("jordanianDinar")} - {JOD_CURRENCY.symbol}</div>
         </div>
 
-        {/* VAT */}
+        {/* VAT info */}
         <div className="space-y-2">
           <Label className="text-sm font-semibold">{t("vatRate")}</Label>
-          <div className="border border-border rounded-lg bg-muted px-3 py-2.5 text-sm text-foreground flex items-center justify-between">
-            <span>{JORDAN_DEFAULT_VAT_RATE}%</span>
-            <span className="text-[11px] text-muted-foreground">{isAr ? "ثابت (الأردن)" : "Fixed (Jordan)"}</span>
+          <div className="border border-border rounded-lg bg-muted px-3 py-2.5 text-sm text-foreground">
+            <span className="text-muted-foreground text-xs">{isAr ? "يتم تحديد نسبة الضريبة لكل منتج على حدة عند إضافته" : "Tax rate is set per product when adding it"}</span>
           </div>
         </div>
 
