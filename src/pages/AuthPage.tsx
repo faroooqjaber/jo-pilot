@@ -5,6 +5,7 @@ import { useI18n } from "@/lib/i18n";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Checkbox } from "@/components/ui/checkbox";
 import { ShoppingBasket, Mail, Lock, User, Loader2, AtSign, Languages, Moon, Sun } from "lucide-react";
 import { toast } from "sonner";
 import { z } from "zod";
@@ -22,6 +23,7 @@ export default function AuthPage() {
   const [fullName, setFullName] = useState("");
   const [username, setUsername] = useState("");
   const [loading, setLoading] = useState(false);
+  const [agreed, setAgreed] = useState(false);
   const [dark, setDark] = useState(() => typeof window !== 'undefined' && document.documentElement.classList.contains('dark'));
 
   const isAr = lang === "ar";
@@ -29,7 +31,16 @@ export default function AuthPage() {
   const toggleDark = () => { document.documentElement.classList.toggle('dark'); setDark(!dark); };
   const toggleLang = () => setLang(lang === "ar" ? "en" : "ar");
 
+  const checkAgreed = () => {
+    if (!agreed) {
+      toast.error("يجب الموافقة على الإخلاء القانوني للمتابعة");
+      return false;
+    }
+    return true;
+  };
+
   const handleLogin = async () => {
+    if (!checkAgreed()) return;
     const emailResult = emailSchema.safeParse(email);
     const passResult = passwordSchema.safeParse(password);
     if (!emailResult.success || !passResult.success) {
@@ -43,6 +54,7 @@ export default function AuthPage() {
   };
 
   const handleUsernameLogin = async () => {
+    if (!checkAgreed()) return;
     const uResult = usernameSchema.safeParse(username.toLowerCase());
     const passResult = passwordSchema.safeParse(password);
     if (!uResult.success || !passResult.success) {
@@ -62,6 +74,7 @@ export default function AuthPage() {
   };
 
   const handleSignup = async () => {
+    if (!checkAgreed()) return;
     const emailResult = emailSchema.safeParse(email);
     const passResult = passwordSchema.safeParse(password);
     const nameResult = nameSchema.safeParse(fullName);
@@ -188,7 +201,7 @@ export default function AuthPage() {
                     <Input type="password" value={password} onChange={e => setPassword(e.target.value)} placeholder={isAr ? "كلمة المرور" : "Password"} className="ltr:pl-10 rtl:pr-10 h-11" maxLength={128} />
                   </div>
                 </div>
-                <Button onClick={handleUsernameLogin} className="w-full h-11 text-sm font-semibold" disabled={loading}>
+                <Button onClick={handleUsernameLogin} className="w-full h-11 text-sm font-semibold" disabled={loading || !agreed}>
                   {loading && <Loader2 className="w-4 h-4 animate-spin ltr:mr-2 rtl:ml-2" />}
                   {isAr ? "تسجيل الدخول" : "Sign In"}
                 </Button>
@@ -231,9 +244,24 @@ export default function AuthPage() {
               </div>
             )}
 
+            {/* Legal Disclaimer Checkbox */}
+            {(mode === "login" || mode === "signup" || isUsernameMode) && (
+              <div className="flex items-start gap-3 p-3 rounded-lg border border-border bg-muted/30">
+                <Checkbox
+                  id="legal-agree"
+                  checked={agreed}
+                  onCheckedChange={(v) => setAgreed(v === true)}
+                  className="mt-1 shrink-0"
+                />
+                <label htmlFor="legal-agree" className="text-[11px] leading-relaxed text-muted-foreground cursor-pointer select-none" dir="rtl">
+                  أوافق على أن المسؤولية القانونية والضريبية كاملة تقع على عاتقي كصاحب متجر، وأقر بأن نظام JO Pilot هو أداة تنظيمية للمتاجر الصغيرة وليس موثقاً حالياً في نظام &quot;فوترة&quot; الوطني، ولا يتحمل النظام أي مسؤولية عن التهرب الضريبي.
+                </label>
+              </div>
+            )}
+
             {/* Action Button */}
             {!isUsernameMode && (
-              <Button onClick={mode === "login" ? handleLogin : mode === "signup" ? handleSignup : handleForgot} className="w-full h-11 text-sm font-semibold" disabled={loading}>
+              <Button onClick={mode === "login" ? handleLogin : mode === "signup" ? handleSignup : handleForgot} className="w-full h-11 text-sm font-semibold" disabled={loading || (mode !== "forgot" && !agreed)}>
                 {loading && <Loader2 className="w-4 h-4 animate-spin ltr:mr-2 rtl:ml-2" />}
                 {mode === "login" ? (isAr ? "تسجيل الدخول" : "Sign In") : mode === "signup" ? (isAr ? "إنشاء حساب" : "Create Account") : (isAr ? "إرسال رابط التعيين" : "Send Reset Link")}
               </Button>

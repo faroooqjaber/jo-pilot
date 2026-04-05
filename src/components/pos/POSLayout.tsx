@@ -44,7 +44,8 @@ export default function POSLayout({ children }: { children: ReactNode }) {
     { path: "/products", label: t("navProducts"), icon: Package, roles: ["owner", "manager", "supervisor"] },
     { path: "/dashboard", label: t("navDashboard"), icon: LayoutDashboard, roles: ["owner", "manager", "supervisor"] },
     { path: "/reports", label: t("navReports"), icon: BarChart3, roles: ["owner", "manager", "supervisor"] },
-    { path: "/team", label: isAr ? "الفريق" : "Team", icon: Users, roles: ["owner", "manager", "supervisor"] },
+    // Team page hidden from navigation per user request
+    // { path: "/team", label: isAr ? "الفريق" : "Team", icon: Users, roles: ["owner", "manager", "supervisor"] },
     { path: "/settings", label: t("navSettings"), icon: Settings, roles: ["owner", "manager"] },
   ];
 

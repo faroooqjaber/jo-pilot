@@ -57,9 +57,9 @@ export default function Index() {
           </div>
           <h1 className="text-4xl md:text-6xl font-extrabold text-foreground tracking-tight leading-tight mb-6">
             {isAr ? (
-              <>نظام نقاط البيع <span className="text-primary">الأذكى</span> لمتجرك</>
+              <>JO Pilot - <span className="text-primary">إدارة متجرك</span> بلمسة</>
             ) : (
-              <>The <span className="text-primary">Smartest</span> POS for Your Store</>
+              <>JO Pilot - <span className="text-primary">Manage</span> Your Store with a Touch</>
             )}
           </h1>
           <p className="text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto mb-10 leading-relaxed">

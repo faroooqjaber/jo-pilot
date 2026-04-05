@@ -96,7 +96,10 @@ export default function POSPage() {
   const removeFromCart = (productId: string) => setCart(prev => prev.filter(i => i.product.id !== productId));
 
   const subtotal = cart.reduce((s, i) => s + i.product.salePrice * i.quantity, 0);
-  const tax = subtotal * vatRate;
+  const tax = cart.reduce((s, i) => {
+    const rate = (i.product.taxRate ?? 16) / 100;
+    return s + i.product.salePrice * i.quantity * rate;
+  }, 0);
   const total = subtotal + tax;
 
   const finalizeSale = () => {
@@ -144,16 +147,16 @@ export default function POSPage() {
 
   return (
     <>
-      <div className={`flex flex-col md:flex-row h-full ${fullscreen ? "fixed inset-0 z-50 bg-background" : ""}`} dir={dir}>
-        {/* Fullscreen Exit Bar */}
+      <div className={`flex flex-col md:flex-row ${fullscreen ? "fixed inset-0 z-50 bg-background w-screen h-screen" : "h-full"}`} dir={dir}>
+        {/* Floating exit button in fullscreen */}
         {fullscreen && (
-          <div className="flex items-center justify-between px-3 py-2 bg-muted/50 border-b border-border shrink-0">
-            <span className="text-sm font-semibold text-foreground">{isAr ? "وضع ملء الشاشة" : "Fullscreen Mode"}</span>
-            <Button variant="destructive" size="sm" className="gap-2 h-8" onClick={toggleFullscreen}>
-              <Minimize className="w-3.5 h-3.5" />
-              {isAr ? "خروج" : "Exit"}
-            </Button>
-          </div>
+          <button
+            onClick={toggleFullscreen}
+            className="fixed top-4 ltr:right-4 rtl:left-4 z-[60] flex items-center gap-2 bg-destructive text-destructive-foreground px-4 py-2 rounded-full shadow-lg hover:bg-destructive/90 transition-colors text-sm font-semibold"
+          >
+            <Minimize className="w-4 h-4" />
+            {isAr ? "خروج من وضع الكاشير" : "Exit Cashier Mode"}
+          </button>
         )}
         {/* Products Grid */}
         <div className="flex-1 flex flex-col p-3 lg:p-5 overflow-hidden min-w-0">
@@ -288,7 +291,7 @@ export default function POSPage() {
               </div>
               <div className="flex justify-between text-sm text-muted-foreground">
                 <span>{fmt(tax)}</span>
-                <span>{t("vat")} ({vatPct}%)</span>
+                <span>{t("vat")}</span>
               </div>
               <div className="flex justify-between text-lg font-bold text-foreground border-t border-border pt-2.5">
                 <span>{fmt(total)}</span>

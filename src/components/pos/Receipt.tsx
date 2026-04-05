@@ -63,10 +63,21 @@ const Receipt = forwardRef<HTMLDivElement, Props>(({ transaction }, ref) => {
           <span>{t("subtotal")}:</span>
           <span>{fmt(transaction.subtotal)}</span>
         </div>
-        <div className="flex justify-between">
-          <span>{t("vat")} ({settings.vatRate}%):</span>
-          <span>{fmt(transaction.tax)}</span>
-        </div>
+        {/* Per-item tax breakdown */}
+        {(() => {
+          const taxGroups: Record<number, number> = {};
+          transaction.items.forEach(item => {
+            const rate = (item.product as any).taxRate ?? 16;
+            const itemTax = item.product.salePrice * item.quantity * (rate / 100);
+            taxGroups[rate] = (taxGroups[rate] || 0) + itemTax;
+          });
+          return Object.entries(taxGroups).map(([rate, amount]) => (
+            <div key={rate} className="flex justify-between">
+              <span>{t("vat")} ({rate}%):</span>
+              <span>{fmt(amount)}</span>
+            </div>
+          ));
+        })()}
         <div className="flex justify-between font-bold text-sm border-t border-border pt-1">
           <span>{t("grandTotal")}:</span>
           <span>{fmt(transaction.total)}</span>
