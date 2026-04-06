@@ -114,11 +114,11 @@ export default function ReportsPage() {
           </div>
         </div>
         {trendData.length > 0 ? (
-          <ResponsiveContainer width="100%" height={280}>
-            <LineChart data={trendData}>
+          <ResponsiveContainer width="100%" height={300}>
+            <LineChart data={trendData} margin={{ top: 5, right: 10, left: 20, bottom: 20 }}>
               <CartesianGrid strokeDasharray="3 3" stroke="hsl(214, 14%, 90%)" />
               <XAxis dataKey="label" tick={{ fontSize: 11 }} interval={0} />
-              <YAxis tick={{ fontSize: 11 }} width={60} />
+              <YAxis tick={{ fontSize: 11 }} width={70} />
               <Tooltip formatter={(v: number) => fmt(v)} />
               <Line type="monotone" dataKey="revenue" stroke="hsl(162, 72%, 34%)" strokeWidth={2.5} dot={{ r: 4, fill: "hsl(162, 72%, 34%)" }} name={t("revenue")} />
             </LineChart>
@@ -130,11 +130,11 @@ export default function ReportsPage() {
         <div className="bg-card border border-border rounded-2xl p-5 pos-shadow">
           <h2 className="font-bold text-foreground mb-4 text-[15px]">{t("topSellingProducts")}</h2>
           {topProducts.length > 0 ? (
-            <ResponsiveContainer width="100%" height={280}>
-              <BarChart data={topProducts} layout="vertical">
+            <ResponsiveContainer width="100%" height={300}>
+              <BarChart data={topProducts} layout="vertical" margin={{ top: 5, right: 10, left: 20, bottom: 20 }}>
                 <CartesianGrid strokeDasharray="3 3" stroke="hsl(214, 14%, 90%)" />
                 <XAxis type="number" tick={{ fontSize: 11 }} />
-                <YAxis dataKey="name" type="category" width={lang === "ar" ? 130 : 110} tick={{ fontSize: 10 }} />
+                <YAxis dataKey="name" type="category" width={lang === "ar" ? 140 : 120} tick={{ fontSize: 10 }} />
                 <Tooltip />
                 <Bar dataKey="qty" fill="hsl(162, 72%, 34%)" radius={[0, 6, 6, 0]} name={t("unitsSold")} />
               </BarChart>
@@ -145,13 +145,13 @@ export default function ReportsPage() {
         <div className="bg-card border border-border rounded-2xl p-5 pos-shadow">
           <h2 className="font-bold text-foreground mb-4 text-[15px]">{t("categoryDistribution")}</h2>
           {categoryData.length > 0 ? (
-            <ResponsiveContainer width="100%" height={280}>
-              <PieChart>
-                <Pie data={categoryData} cx="50%" cy="50%" outerRadius={80} innerRadius={30} dataKey="value" nameKey="name" label={({ name, percent }) => `${(percent * 100).toFixed(0)}%`} labelLine={false}>
+            <ResponsiveContainer width="100%" height={320}>
+              <PieChart margin={{ top: 5, right: 5, left: 5, bottom: 20 }}>
+                <Pie data={categoryData} cx="50%" cy="45%" outerRadius={75} innerRadius={28} dataKey="value" nameKey="name" label={({ name, percent }) => `${(percent * 100).toFixed(0)}%`} labelLine={false}>
                   {categoryData.map((_, i) => <Cell key={i} fill={COLORS[i % COLORS.length]} />)}
                 </Pie>
                 <Tooltip formatter={(v: number) => fmt(v)} />
-                <Legend wrapperStyle={{ fontSize: 11, paddingTop: 8 }} />
+                <Legend wrapperStyle={{ fontSize: 11, paddingTop: 12 }} />
               </PieChart>
             </ResponsiveContainer>
           ) : <p className="text-center text-muted-foreground py-12 text-sm">{t("noDataAvailable")}</p>}

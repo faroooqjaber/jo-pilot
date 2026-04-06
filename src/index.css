@@ -71,3 +71,28 @@
     font-family: 'Tajawal', 'IBM Plex Sans Arabic', sans-serif;
   }
 }
+
+/* Thermal receipt printing - 80mm */
+@media print {
+  body * {
+    visibility: hidden !important;
+  }
+  .receipt-print,
+  .receipt-print * {
+    visibility: visible !important;
+  }
+  .receipt-print {
+    position: absolute !important;
+    left: 0 !important;
+    top: 0 !important;
+    width: 80mm !important;
+    margin: 0 !important;
+    padding: 4mm !important;
+    box-shadow: none !important;
+    border: none !important;
+  }
+  @page {
+    size: 80mm auto;
+    margin: 0;
+  }
+}

@@ -71,10 +71,15 @@ export default function BarcodeScanner({ open, onClose, onScan }: Props) {
       });
       scannerRef.current = scanner;
 
+      const containerEl = document.getElementById(containerId);
+      const containerWidth = containerEl?.clientWidth || 300;
+      const qrboxWidth = Math.floor(containerWidth * 0.8);
+      const qrboxHeight = Math.floor(qrboxWidth * 0.35);
+
       scanner
         .start(
           { facingMode: "environment" },
-          { fps: 30, qrbox: { width: 320, height: 100 }, aspectRatio: 3.0, disableFlip: false },
+          { fps: 60, qrbox: { width: qrboxWidth, height: qrboxHeight }, aspectRatio: 1.0, disableFlip: false },
           async (decodedText) => {
             onScan(decodedText);
             await cleanupScanner();
