@@ -179,26 +179,16 @@ export default function OnboardingPage() {
             </p>
           </div>
 
-          {/* Single option: Create Store */}
-          <button
+          {/* Single option: Create Store - auto navigate */}
+          <Button
             onClick={() => setStep("create")}
-            className="group w-full bg-card border-2 border-primary/30 rounded-2xl p-6 text-start hover:border-primary/50 hover:shadow-xl hover:shadow-primary/5 transition-all duration-300"
+            size="lg"
+            className="w-full h-14 text-base font-bold gap-3 rounded-2xl shadow-xl shadow-primary/25"
           >
-            <div className="flex items-start gap-4">
-              <div className="w-14 h-14 rounded-2xl bg-primary/10 flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform duration-300">
-                <Store className="w-7 h-7 text-primary" />
-              </div>
-              <div className="flex-1 min-w-0">
-                <h3 className="font-bold text-foreground text-lg mb-1">
-                  {isAr ? "إنشاء متجر" : "Create a Store"}
-                </h3>
-                <p className="text-sm text-muted-foreground leading-relaxed">
-                  {isAr ? "ابدأ بإعداد متجرك الآن وأدر أعمالك بسهولة" : "Set up your store now and manage your business easily"}
-                </p>
-              </div>
-              <Arrow className="w-5 h-5 text-muted-foreground group-hover:text-primary shrink-0 mt-1 transition-colors" />
-            </div>
-          </button>
+            <Store className="w-6 h-6" />
+            {isAr ? "إنشاء متجرك الآن" : "Create Your Store Now"}
+            <Arrow className="w-5 h-5" />
+          </Button>
 
           <div className="text-center mt-6">
             <button onClick={signOut} className="text-sm text-muted-foreground hover:text-foreground transition-colors font-medium">

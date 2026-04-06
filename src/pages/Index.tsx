@@ -1,6 +1,6 @@
 import { Link } from "react-router-dom";
 import { useI18n } from "@/lib/i18n";
-import { ShoppingBasket, ArrowLeft, ArrowRight, Languages, Moon, Sun, BarChart3, Users, Shield, Smartphone } from "lucide-react";
+import { ShoppingBasket, ArrowLeft, ArrowRight, Languages, Moon, Sun, BarChart3, Package, Shield, Smartphone } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
 
@@ -16,7 +16,7 @@ export default function Index() {
   const features = [
     { icon: Smartphone, title: isAr ? "نقطة بيع ذكية" : "Smart POS", desc: isAr ? "واجهة سهلة تعمل على جميع الأجهزة" : "Easy interface on all devices" },
     { icon: BarChart3, title: isAr ? "تقارير وتحليلات" : "Reports & Analytics", desc: isAr ? "تابع أداء متجرك لحظة بلحظة" : "Track your store performance in real-time" },
-    { icon: Users, title: isAr ? "إدارة الفريق" : "Team Management", desc: isAr ? "أضف موظفين وحدد صلاحياتهم" : "Add staff and manage their roles" },
+    { icon: Package, title: isAr ? "تابع مخزونك" : "Track Inventory", desc: isAr ? "راقب مستويات المخزون وحركة المنتجات بسهولة" : "Monitor stock levels and product movement easily" },
     { icon: Shield, title: isAr ? "آمن وموثوق" : "Secure & Reliable", desc: isAr ? "بياناتك محمية بأعلى معايير الأمان" : "Your data is protected with top security" },
   ];
 
@@ -64,8 +64,8 @@ export default function Index() {
           </h1>
           <p className="text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto mb-10 leading-relaxed">
             {isAr
-              ? "أدر مبيعاتك، تابع مخزونك، ونظّم فريقك من مكان واحد. بسيط، سريع، وآمن."
-              : "Manage sales, track inventory, and organize your team from one place. Simple, fast, and secure."}
+              ? "أدر مبيعاتك، تابع مخزونك، ونظّم أعمالك من مكان واحد. بسيط، سريع، وآمن."
+              : "Manage sales, track inventory, and organize your business from one place. Simple, fast, and secure."}
           </p>
           <Link to="/auth">
             <Button size="lg" className="h-14 px-10 text-base font-bold gap-2 rounded-2xl shadow-xl shadow-primary/25 hover:shadow-2xl hover:shadow-primary/30 transition-all">

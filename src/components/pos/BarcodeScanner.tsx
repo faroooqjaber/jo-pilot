@@ -66,9 +66,6 @@ export default function BarcodeScanner({ open, onClose, onScan }: Props) {
         formatsToSupport: [
           Html5QrcodeSupportedFormats.EAN_13,
           Html5QrcodeSupportedFormats.CODE_128,
-          Html5QrcodeSupportedFormats.EAN_8,
-          Html5QrcodeSupportedFormats.UPC_A,
-          Html5QrcodeSupportedFormats.QR_CODE,
         ],
         verbose: false,
       });
@@ -77,7 +74,7 @@ export default function BarcodeScanner({ open, onClose, onScan }: Props) {
       scanner
         .start(
           { facingMode: "environment" },
-          { fps: 15, qrbox: { width: 300, height: 120 }, aspectRatio: 2.0 },
+          { fps: 30, qrbox: { width: 320, height: 100 }, aspectRatio: 3.0, disableFlip: false },
           async (decodedText) => {
             onScan(decodedText);
             await cleanupScanner();
