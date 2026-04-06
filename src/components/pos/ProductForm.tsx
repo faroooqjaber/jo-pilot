@@ -120,7 +120,7 @@ export default function ProductForm({ open, onClose, onSave, initial }: Props) {
                 </Button>
               </div>
               <p className="text-[11px] text-muted-foreground mt-1">
-                {isAr ? "اتركه فارغاً لتوليد باركود تلقائي" : "Leave empty to auto-generate"}
+                {isAr ? "أدخل الباركود يدوياً أو امسحه بالكاميرا" : "Enter barcode manually or scan with camera"}
               </p>
             </div>
 

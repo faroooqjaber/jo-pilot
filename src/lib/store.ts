@@ -130,7 +130,9 @@ export function addProduct(product: Omit<Product, 'id' | 'createdAt'> & { barcod
   const newProduct: Product = {
     ...product,
     id: crypto.randomUUID(),
-    barcode: product.barcode && product.barcode.trim() ? product.barcode : generateEAN13(),
+    barcode: product.barcode !== undefined && product.barcode !== null
+      ? product.barcode
+      : generateEAN13(),
     taxRate: product.taxRate ?? 16,
     createdAt: new Date().toISOString(),
   };

@@ -21,9 +21,9 @@ export default function DashboardPage() {
   }, []);
 
   const statCards = [
-    { icon: <DollarSign className="w-5 h-5" />, label: t("todayTotalSales"), value: fmt(stats.totalSales), iconBg: "bg-primary/10 text-primary" },
-    { icon: <ShoppingBag className="w-5 h-5" />, label: t("todaySalesOps"), value: stats.totalTransactions.toString(), iconBg: "bg-accent/10 text-accent" },
-    { icon: <AlertTriangle className="w-5 h-5" />, label: t("lowStockProducts"), value: lowStock.length.toString(), iconBg: "bg-destructive/10 text-destructive" },
+    { icon: <DollarSign className="w-5 h-5" strokeWidth={2.5} color="#10b981" />, label: t("todayTotalSales"), value: fmt(stats.totalSales), iconBg: "bg-primary/10" },
+    { icon: <ShoppingBag className="w-5 h-5" strokeWidth={2.5} color="#10b981" />, label: t("todaySalesOps"), value: stats.totalTransactions.toString(), iconBg: "bg-accent/10" },
+    { icon: <AlertTriangle className="w-5 h-5" strokeWidth={2.5} color="#10b981" />, label: t("lowStockProducts"), value: lowStock.length.toString(), iconBg: "bg-destructive/10" },
   ];
 
   return (
