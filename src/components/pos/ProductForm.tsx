@@ -54,9 +54,9 @@ export default function ProductForm({ open, onClose, onSave, initial }: Props) {
     playBeep();
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!name || !salePrice || !costPrice || !stock) return;
+  const [showBarcodeConfirm, setShowBarcodeConfirm] = useState(false);
+
+  const doSave = (autoBarcode: boolean) => {
     onSave({
       name,
       category,
@@ -65,9 +65,19 @@ export default function ProductForm({ open, onClose, onSave, initial }: Props) {
       stock: parseInt(stock),
       lowStockThreshold: parseInt(threshold) || 5,
       taxRate,
-      ...(barcode.trim() ? { barcode: barcode.trim() } : {}),
+      ...(barcode.trim() ? { barcode: barcode.trim() } : autoBarcode ? {} : { barcode: "" }),
     });
     onClose();
+  };
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!name || !salePrice || !costPrice || !stock) return;
+    if (!barcode.trim() && !initial) {
+      setShowBarcodeConfirm(true);
+      return;
+    }
+    doSave(false);
   };
 
   const isAr = dir === "rtl";
@@ -163,6 +173,28 @@ export default function ProductForm({ open, onClose, onSave, initial }: Props) {
         </DialogContent>
       </Dialog>
       <BarcodeScanner open={scannerOpen} onClose={() => setScannerOpen(false)} onScan={handleScan} />
+
+      {/* Barcode empty confirmation */}
+      <Dialog open={showBarcodeConfirm} onOpenChange={setShowBarcodeConfirm}>
+        <DialogContent className="max-w-sm" dir={dir}>
+          <DialogHeader>
+            <DialogTitle>{isAr ? "الباركود فارغ" : "Barcode is Empty"}</DialogTitle>
+          </DialogHeader>
+          <p className="text-sm text-muted-foreground">
+            {isAr
+              ? "هل تريد إنشاء باركود تلقائي لهذا المنتج، أم ستقوم بمسحه لاحقاً؟"
+              : "Do you want to auto-generate a barcode for this product, or will you scan it later?"}
+          </p>
+          <div className="flex gap-2 pt-2">
+            <Button onClick={() => { setShowBarcodeConfirm(false); doSave(true); }} className="flex-1">
+              {isAr ? "نعم، إنشاء تلقائي" : "Yes, Auto-generate"}
+            </Button>
+            <Button variant="outline" onClick={() => { setShowBarcodeConfirm(false); doSave(false); }} className="flex-1">
+              {isAr ? "لا، سأضيفه يدوياً" : "No, I'll add manually"}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </>
   );
 }

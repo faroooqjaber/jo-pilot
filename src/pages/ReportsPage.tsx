@@ -134,7 +134,7 @@ export default function ReportsPage() {
               <BarChart data={topProducts} layout="vertical">
                 <CartesianGrid strokeDasharray="3 3" stroke="hsl(214, 14%, 90%)" />
                 <XAxis type="number" tick={{ fontSize: 11 }} />
-                <YAxis dataKey="name" type="category" width={lang === "ar" ? 120 : 100} tick={{ fontSize: 10, width: lang === "ar" ? 110 : 90 }} />
+                <YAxis dataKey="name" type="category" width={lang === "ar" ? 130 : 110} tick={{ fontSize: 10 }} />
                 <Tooltip />
                 <Bar dataKey="qty" fill="hsl(162, 72%, 34%)" radius={[0, 6, 6, 0]} name={t("unitsSold")} />
               </BarChart>
@@ -147,11 +147,11 @@ export default function ReportsPage() {
           {categoryData.length > 0 ? (
             <ResponsiveContainer width="100%" height={280}>
               <PieChart>
-                <Pie data={categoryData} cx="50%" cy="50%" outerRadius={90} dataKey="value" nameKey="name" label={({ name, percent }) => `${(percent * 100).toFixed(0)}%`}>
+                <Pie data={categoryData} cx="50%" cy="50%" outerRadius={80} innerRadius={30} dataKey="value" nameKey="name" label={({ name, percent }) => `${(percent * 100).toFixed(0)}%`} labelLine={false}>
                   {categoryData.map((_, i) => <Cell key={i} fill={COLORS[i % COLORS.length]} />)}
                 </Pie>
                 <Tooltip formatter={(v: number) => fmt(v)} />
-                <Legend />
+                <Legend wrapperStyle={{ fontSize: 11, paddingTop: 8 }} />
               </PieChart>
             </ResponsiveContainer>
           ) : <p className="text-center text-muted-foreground py-12 text-sm">{t("noDataAvailable")}</p>}
